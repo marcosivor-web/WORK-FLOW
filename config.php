@@ -3,7 +3,7 @@
 //  AdminFlow — Configuração Central
 // ============================================================
 
-// ── BASE DE DADOS ─────────────────────────────────────────
+// ── BASE DE DADOS ─────────────────────────────────────────S
 define('DB_HOST', 'sql201.infinityfree.com');
 define('DB_USER', 'if0_41950429');          // ← utilizador MySQL 
 define('DB_PASS', 'Ivor232405');              // ← senha MySQL 

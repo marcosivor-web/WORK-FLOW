@@ -94,7 +94,7 @@ const EmailAPI = {
 };
 
 // ── INICIALIZAÇÃO (substitui bootApp) ───────────────────────
-// Substitua a função doLogin() no dashboard.html por esta:
+
 async function doLoginAPI() {
   const login = document.getElementById('l-user').value.trim().toLowerCase();
   const pass  = document.getElementById('l-pass').value;
