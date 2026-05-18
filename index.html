@@ -238,6 +238,29 @@ body::before{content:'';position:fixed;inset:0;background:
 </style>
 </head>
 <script src="api.js"></script>
+<!-- Botão flutuante do chatbot -->
+<div id="chat-bubble" onclick="toggleChat()" style="
+  position:fixed; bottom:24px; right:24px; z-index:500;
+  width:52px; height:52px; border-radius:50%;
+  background:linear-gradient(135deg,#7C6FFF,#9B8FFF);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:22px; box-shadow:0 4px 20px rgba(124,111,255,.4)">
+  🤖
+</div>
+
+<!-- Janela do chat -->
+<div id="chat-window" style="display:none; position:fixed; bottom:90px; right:24px;
+  width:360px; height:500px; z-index:500; border-radius:16px;
+  overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,.3)">
+  <iframe src="chatbot.html" width="100%" height="100%" frameborder="0"></iframe>
+</div>
+
+<script>
+function toggleChat(){
+  const w = document.getElementById('chat-window');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+}
+</script>
 <body>
 
 <!-- ═══════ LOGIN ═══════ -->
