@@ -1,14 +1,13 @@
 <?php
 // ============================================================
 //  AdminFlow — Configuração Central
-//  EDITE ESTE FICHEIRO antes de usar o sistema
 // ============================================================
 
 // ── BASE DE DADOS ─────────────────────────────────────────
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');          // ← utilizador MySQL (XAMPP padrão: root)
-define('DB_PASS', '');              // ← senha MySQL (XAMPP padrão: vazio)
-define('DB_NAME', 'adminflow');     // ← nome da base de dados
+define('DB_HOST', 'sql201.infinityfree.com');
+define('DB_USER', 'if0_41950429');          // ← utilizador MySQL 
+define('DB_PASS', 'Ivor232405');              // ← senha MySQL 
+define('DB_NAME', 'if0_41950429_schema');     // ← nome da base de dados
 
 // ── EMAIL / SMTP ──────────────────────────────────────────
 // Para usar Gmail: ative "Senhas de App" na conta Google
