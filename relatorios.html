@@ -1,0 +1,399 @@
+cat > /home/claude/fixes/relatorios_page.html << 'ENDHTML'
+<!-- ============================================================
+  SUBSTITUI o bloco <div class="pg" id="pg-relatorios"> existente
+  pelo conteúdo abaixo no teu index.html
+  Inclui: 4 gráficos + botão exportar PDF
+  Dependências (já no CDN, não precisas instalar nada):
+    Chart.js, jsPDF, html2canvas
+============================================================ -->
+
+<!-- Scripts necessários — adiciona no <head> ou antes de </body> -->
+<!--
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+-->
+
+<div class="pg" id="pg-relatorios">
+
+  <!-- Cabeçalho com filtro de mês e botão PDF -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <select id="rel-mes" onchange="loadRelatorios()" style="background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:.5rem .9rem;color:var(--tx);font-size:.85rem;outline:none">
+        <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+        <option value="3">Março</option><option value="4">Abril</option>
+        <option value="5">Maio</option><option value="6">Junho</option>
+        <option value="7">Julho</option><option value="8">Agosto</option>
+        <option value="9">Setembro</option><option value="10">Outubro</option>
+        <option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+      <select id="rel-ano" onchange="loadRelatorios()" style="background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:.5rem .9rem;color:var(--tx);font-size:.85rem;outline:none">
+        <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
+      </select>
+    </div>
+    <button class="btn btn-p" id="btn-pdf" onclick="exportarPDF()">📄 Exportar PDF</button>
+  </div>
+
+  <!-- Cards de resumo -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem" id="rel-cards">
+    <div class="sc"><div class="ci" style="background:rgba(124,111,255,.15)">🎫</div><div class="cl">Total Tickets</div><div class="cv" id="r-tk-total">—</div></div>
+    <div class="sc"><div class="ci" style="background:rgba(111,255,203,.15)">✅</div><div class="cl">Resolvidos</div><div class="cv" id="r-tk-resol">—</div></div>
+    <div class="sc"><div class="ci" style="background:rgba(255,207,111,.15)">⏱️</div><div class="cl">Horas trabalhadas</div><div class="cv" id="r-horas">—</div></div>
+    <div class="sc"><div class="ci" style="background:rgba(255,111,187,.15)">👥</div><div class="cl">Online agora</div><div class="cv" id="r-online">—</div></div>
+  </div>
+
+  <!-- Área dos gráficos (capturada pelo PDF) -->
+  <div id="rel-graficos">
+
+    <!-- Linha 1: Tickets + Pontos por dia -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+
+      <div class="gp">
+        <div class="ph"><span class="pt">Tickets por estado</span></div>
+        <div style="height:220px;display:flex;align-items:center;justify-content:center">
+          <canvas id="chart-tickets" style="max-height:210px"></canvas>
+        </div>
+      </div>
+
+      <div class="gp">
+        <div class="ph"><span class="pt">Tickets por prioridade</span></div>
+        <div style="height:220px;display:flex;align-items:center;justify-content:center">
+          <canvas id="chart-prioridade" style="max-height:210px"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linha 2: Funcionários por divisão + Horas por funcionário -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+
+      <div class="gp">
+        <div class="ph"><span class="pt">Funcionários por divisão</span></div>
+        <div style="height:240px">
+          <canvas id="chart-divisoes" style="max-height:230px"></canvas>
+        </div>
+      </div>
+
+      <div class="gp">
+        <div class="ph"><span class="pt">Horas trabalhadas este mês</span></div>
+        <div style="height:240px;overflow-y:auto">
+          <canvas id="chart-horas" style="min-height:220px"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linha 3: Entradas por dia da semana (full width) -->
+    <div class="gp" style="margin-bottom:1.25rem">
+      <div class="ph"><span class="pt">Registos de bate-ponto por dia da semana (últimos 30 dias)</span></div>
+      <div style="height:200px">
+        <canvas id="chart-ponto" style="max-height:190px"></canvas>
+      </div>
+    </div>
+
+    <!-- Linha 4: Evolução mensal de tickets -->
+    <div class="gp">
+      <div class="ph"><span class="pt">Evolução de tickets nos últimos 6 meses</span></div>
+      <div style="height:200px">
+        <canvas id="chart-evolucao" style="max-height:190px"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /rel-graficos -->
+
+</div><!-- /pg-relatorios -->
+
+
+<!-- ============================================================
+  JAVASCRIPT — adiciona isto dentro do <script> principal
+  (ou num <script> separado antes de </body>)
+============================================================ -->
+<script id="relatorios-script">
+// ── Dados de fallback (quando PHP não está disponível) ───────
+const REL_FALLBACK = {
+  resumo: { total_funcionarios:12, online_agora:7, tickets_pendentes:8, tickets_resolvidos:26, horas_mes_total:9600 },
+  tk_estado:  [{ estado:'Pendente', total:8 }, { estado:'Resolvido', total:26 }],
+  tk_prio:    [{ prioridade:'Alta', total:5 }, { prioridade:'Média', total:18 }, { prioridade:'Baixa', total:11 }],
+  fn_divisao: [
+    { divisao:'TI', total:4, online:3 },
+    { divisao:'Suporte', total:3, online:2 },
+    { divisao:'Dev', total:2, online:2 },
+    { divisao:'RH', total:3, online:0 },
+  ],
+  horas: [
+    { nome:'João Silva',   meta_horas:160, minutos:9120 },
+    { nome:'Pedro Nunes',  meta_horas:160, minutos:8760 },
+    { nome:'Rui Ferreira', meta_horas:160, minutos:7680 },
+    { nome:'Ana Costa',    meta_horas:160, minutos:6900 },
+    { nome:'Carla Mendes', meta_horas:160, minutos:6600 },
+  ],
+  ponto_dia: [
+    { dia:'Monday', total:48 }, { dia:'Tuesday', total:52 },
+    { dia:'Wednesday', total:55 }, { dia:'Thursday', total:50 }, { dia:'Friday', total:44 },
+  ],
+  tk_mes: [
+    { mes:'2024-12', total:14 }, { mes:'2025-01', total:19 }, { mes:'2025-02', total:22 },
+    { mes:'2025-03', total:18 }, { mes:'2025-04', total:28 }, { mes:'2025-05', total:34 },
+  ],
+};
+
+// Instâncias dos gráficos para destruir e recriar ao filtrar
+const CHARTS = {};
+const CHART_COLORS = ['#7C6FFF','#6FFFCB','#FF6FBB','#FFCF6F','#FF6F6F','#9FD0FF'];
+
+function chartDefaults(extra = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { labels: { color: 'rgba(240,238,255,.75)', font: { size: 12 } } },
+      tooltip: { backgroundColor: 'rgba(20,16,40,.95)', titleColor: '#F0EEFF', bodyColor: 'rgba(240,238,255,.75)' }
+    },
+    ...extra
+  };
+}
+
+function destroyChart(id) {
+  if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
+}
+
+function buildCharts(d) {
+  const diasPT = { Sunday:'Dom', Monday:'Seg', Tuesday:'Ter', Wednesday:'Qua',
+                   Thursday:'Qui', Friday:'Sex', Saturday:'Sáb' };
+
+  // 1. Tickets por estado (donut)
+  destroyChart('tk');
+  CHARTS['tk'] = new Chart(document.getElementById('chart-tickets'), {
+    type: 'doughnut',
+    data: {
+      labels: d.tk_estado.map(r => r.estado),
+      datasets: [{ data: d.tk_estado.map(r => r.total), backgroundColor: ['#FFCF6F','#6FFFCB'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: chartDefaults({ cutout: '65%' })
+  });
+
+  // 2. Tickets por prioridade (bar horizontal)
+  destroyChart('prio');
+  CHARTS['prio'] = new Chart(document.getElementById('chart-prioridade'), {
+    type: 'bar',
+    data: {
+      labels: d.tk_prio.map(r => r.prioridade),
+      datasets: [{ data: d.tk_prio.map(r => r.total), backgroundColor: ['#FF6F6F','#FFCF6F','#6FFFCB'], borderRadius: 6, borderSkipped: false }]
+    },
+    options: chartDefaults({ indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'rgba(240,238,255,.5)' }, grid: { color: 'rgba(255,255,255,.06)' } }, y: { ticks: { color: 'rgba(240,238,255,.75)' }, grid: { display: false } } } })
+  });
+
+  // 3. Funcionários por divisão (bar + online overlay)
+  destroyChart('div');
+  CHARTS['div'] = new Chart(document.getElementById('chart-divisoes'), {
+    type: 'bar',
+    data: {
+      labels: d.fn_divisao.map(r => r.divisao),
+      datasets: [
+        { label: 'Total', data: d.fn_divisao.map(r => r.total), backgroundColor: 'rgba(124,111,255,.5)', borderRadius: 5 },
+        { label: 'Online', data: d.fn_divisao.map(r => r.online), backgroundColor: '#6FFFCB', borderRadius: 5 },
+      ]
+    },
+    options: chartDefaults({ scales: { x: { ticks: { color: 'rgba(240,238,255,.75)' }, grid: { display: false } }, y: { ticks: { color: 'rgba(240,238,255,.5)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,.06)' } } } })
+  });
+
+  // 4. Horas por funcionário (bar horizontal)
+  destroyChart('hrs');
+  const hrsDados = d.horas.slice(0,8);
+  CHARTS['hrs'] = new Chart(document.getElementById('chart-horas'), {
+    type: 'bar',
+    data: {
+      labels: hrsDados.map(r => r.nome.split(' ')[0]),
+      datasets: [
+        { label: 'Trabalhadas (h)', data: hrsDados.map(r => +(r.minutos/60).toFixed(1)), backgroundColor: '#7C6FFF', borderRadius: 5 },
+        { label: 'Meta (h)', data: hrsDados.map(r => r.meta_horas), backgroundColor: 'rgba(255,255,255,.1)', borderRadius: 5 },
+      ]
+    },
+    options: chartDefaults({ indexAxis: 'y', scales: { x: { ticks: { color: 'rgba(240,238,255,.5)' }, grid: { color: 'rgba(255,255,255,.06)' } }, y: { ticks: { color: 'rgba(240,238,255,.75)', font: { size: 11 } }, grid: { display: false } } } })
+  });
+
+  // 5. Pontos por dia da semana (line)
+  destroyChart('pto');
+  CHARTS['pto'] = new Chart(document.getElementById('chart-ponto'), {
+    type: 'line',
+    data: {
+      labels: d.ponto_dia.map(r => diasPT[r.dia] || r.dia),
+      datasets: [{ label: 'Entradas', data: d.ponto_dia.map(r => r.total), borderColor: '#7C6FFF', backgroundColor: 'rgba(124,111,255,.15)', fill: true, tension: 0.35, pointBackgroundColor: '#7C6FFF', pointRadius: 4 }]
+    },
+    options: chartDefaults({ plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'rgba(240,238,255,.75)' }, grid: { color: 'rgba(255,255,255,.06)' } }, y: { ticks: { color: 'rgba(240,238,255,.5)', stepSize: 5 }, grid: { color: 'rgba(255,255,255,.06)' } } } })
+  });
+
+  // 6. Evolução mensal (line)
+  destroyChart('evo');
+  CHARTS['evo'] = new Chart(document.getElementById('chart-evolucao'), {
+    type: 'line',
+    data: {
+      labels: d.tk_mes.map(r => r.mes),
+      datasets: [{ label: 'Tickets', data: d.tk_mes.map(r => r.total), borderColor: '#FF6FBB', backgroundColor: 'rgba(255,111,187,.12)', fill: true, tension: 0.35, pointBackgroundColor: '#FF6FBB', pointRadius: 4 }]
+    },
+    options: chartDefaults({ plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'rgba(240,238,255,.75)' }, grid: { color: 'rgba(255,255,255,.06)' } }, y: { ticks: { color: 'rgba(240,238,255,.5)', stepSize: 5 }, grid: { color: 'rgba(255,255,255,.06)' } } } })
+  });
+}
+
+function updateCards(r) {
+  const tk = r.tk_estado || [];
+  const total = tk.reduce((s,t)=>s+parseInt(t.total),0);
+  const resol = tk.find(t=>t.estado==='Resolvido')?.total ?? r.resumo?.tickets_resolvidos ?? 0;
+  const hTotal = r.resumo?.horas_mes_total ?? 0;
+  document.getElementById('r-tk-total').textContent  = r.resumo?.tickets_pendentes !== undefined ? (parseInt(r.resumo.tickets_pendentes)+parseInt(resol)) : total;
+  document.getElementById('r-tk-resol').textContent  = resol;
+  document.getElementById('r-horas').textContent     = Math.round(hTotal/60)+'h';
+  document.getElementById('r-online').textContent    = r.resumo?.online_agora ?? '—';
+}
+
+async function loadRelatorios() {
+  const mes = document.getElementById('rel-mes')?.value ?? new Date().getMonth()+1;
+  const ano = document.getElementById('rel-ano')?.value ?? new Date().getFullYear();
+  try {
+    const res = await fetch(`/relatorios.php?action=dashboard&mes=${mes}&ano=${ano}`, { credentials:'include' });
+    if (!res.ok) throw new Error('PHP not available');
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.msg);
+    updateCards(json.data);
+    buildCharts(json.data);
+  } catch {
+    // Usa dados de exemplo quando PHP não está disponível (GitHub Pages)
+    updateCards(REL_FALLBACK);
+    buildCharts(REL_FALLBACK);
+  }
+}
+
+// ── Exportar PDF ─────────────────────────────────────────────
+async function exportarPDF() {
+  const btn = document.getElementById('btn-pdf');
+  btn.textContent = '⏳ A gerar...';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, margin = 14;
+    let y = 20;
+
+    // Cabeçalho
+    pdf.setFillColor(124, 111, 255);
+    pdf.roundedRect(margin, y - 8, W - margin*2, 16, 3, 3, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.text('AdminFlow — Relatório Mensal', W/2, y+1, { align:'center' });
+    y += 18;
+
+    const mes = document.getElementById('rel-mes');
+    const ano = document.getElementById('rel-ano');
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.text(`Gerado em: ${new Date().toLocaleString('pt-PT')} | Período: ${mes?.options[mes?.selectedIndex]?.text ?? ''} ${ano?.value ?? ''}`, W/2, y, { align:'center' });
+    y += 10;
+
+    // Cards de resumo em texto
+    const cards = [
+      ['Total Tickets', document.getElementById('r-tk-total')?.textContent],
+      ['Resolvidos',    document.getElementById('r-tk-resol')?.textContent],
+      ['Horas (mês)',   document.getElementById('r-horas')?.textContent],
+      ['Online agora',  document.getElementById('r-online')?.textContent],
+    ];
+    const cw = (W - margin*2 - 9) / 4;
+    cards.forEach((c, i) => {
+      const cx = margin + i*(cw+3);
+      pdf.setFillColor(247, 247, 252);
+      pdf.roundedRect(cx, y, cw, 18, 2, 2, 'F');
+      pdf.setTextColor(130, 130, 160);
+      pdf.setFontSize(7);
+      pdf.text(c[0], cx + cw/2, y+6, { align:'center' });
+      pdf.setTextColor(50, 50, 80);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(13);
+      pdf.text(c[1] ?? '—', cx + cw/2, y+14, { align:'center' });
+      pdf.setFont('helvetica', 'normal');
+    });
+    y += 24;
+
+    // Captura cada gráfico
+    const chartIds = [
+      ['chart-tickets',    'Tickets por estado'],
+      ['chart-prioridade', 'Tickets por prioridade'],
+      ['chart-divisoes',   'Funcionários por divisão'],
+      ['chart-horas',      'Horas trabalhadas'],
+      ['chart-ponto',      'Bate-ponto por dia da semana'],
+      ['chart-evolucao',   'Evolução de tickets'],
+    ];
+
+    for (let idx = 0; idx < chartIds.length; idx++) {
+      const [cid, label] = chartIds[idx];
+      const canvas = document.getElementById(cid);
+      if (!canvas) continue;
+
+      try {
+        const imgData = canvas.toDataURL('image/png', 0.95);
+        const iw = canvas.width, ih = canvas.height;
+        const ratio = ih / iw;
+
+        const pdfW = (W - margin*2) / 2 - 3;
+        const pdfH = Math.min(pdfW * ratio, 55);
+        const col = idx % 2;
+        const px = margin + col * (pdfW + 6);
+
+        if (col === 0 && idx > 0) y += 4;
+        if (y + pdfH + 14 > 285) { pdf.addPage(); y = 14; }
+
+        // Label do gráfico
+        pdf.setFontSize(8); pdf.setTextColor(80,80,120);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(label, px, y + 4);
+        pdf.setFont('helvetica', 'normal');
+
+        // Imagem do gráfico
+        pdf.setFillColor(248,248,253);
+        pdf.roundedRect(px, y+6, pdfW, pdfH, 2, 2, 'F');
+        pdf.addImage(imgData, 'PNG', px+2, y+7, pdfW-4, pdfH-2);
+
+        if (col === 1) y += pdfH + 14;
+        if (idx === chartIds.length - 1 && col === 0) y += pdfH + 14;
+      } catch {}
+    }
+
+    // Rodapé
+    pdf.setFontSize(7); pdf.setTextColor(180,180,180);
+    pdf.text('AdminFlow — Sistema de Gestão Interna', W/2, 292, { align:'center' });
+
+    const dataStr = new Date().toISOString().slice(0,10);
+    pdf.save(`relatorio_adminflow_${dataStr}.pdf`);
+
+  } catch (e) {
+    alert('Erro ao gerar PDF: ' + e.message);
+  }
+
+  btn.textContent = '📄 Exportar PDF';
+  btn.disabled = false;
+}
+
+// Inicializar ao navegar para a página
+// (esta função é chamada em go('relatorios', ...) no JS principal)
+function initRelatorios() {
+  // Define mês e ano actuais nos selects
+  const now = new Date();
+  const ms = document.getElementById('rel-mes');
+  const as = document.getElementById('rel-ano');
+  if (ms) ms.value = now.getMonth() + 1;
+  if (as) as.value = now.getFullYear();
+
+  // Carrega Chart.js, jsPDF e html2canvas se não estiverem já carregados
+  function loadScript(src, cb) {
+    if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = cb; document.head.appendChild(s);
+  }
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js', () => {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => {
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => {
+        loadRelatorios();
+      });
+    });
+  });
+}
+</script>
