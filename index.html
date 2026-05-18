@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdminFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --a:#7C6FFF;--a2:#FF6FBB;
+  --gl:rgba(255,255,255,.06);--gb:rgba(255,255,255,.12);--gh:rgba(255,255,255,.10);
+  --tx:#F0EEFF;--mu:rgba(240,238,255,.5);
+  --sw:260px;--ok:#6FFFCB;--wn:#FFCF6F;--er:#FF6F6F;
+}
+body{font-family:'DM Sans',sans-serif;background:#0A0812;color:var(--tx);min-height:100vh;display:flex;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 10%,rgba(124,111,255,.25) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 50% at 80% 80%,rgba(255,111,187,.2) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 40% at 60% 40%,rgba(111,255,203,.1) 0%,transparent 50%);
+  pointer-events:none;z-index:0}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;background:#0A0812}
+#login-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(124,111,255,.3) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(255,111,187,.25) 0%,transparent 60%)}
+.lbox{position:relative;z-index:1;background:rgba(20,16,40,.92);border:1px solid var(--gb);border-radius:28px;padding:2.5rem;width:400px;max-width:92vw;backdrop-filter:blur(30px)}
+.llogorow{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;text-align:center;margin-bottom:.3rem;display:flex;align-items:center;justify-content:center;gap:10px}
+.llogodot{width:12px;height:12px;border-radius:50%;background:var(--a);box-shadow:0 0 14px var(--a);animation:pulse 2s infinite}
+.lsub{text-align:center;font-size:.82rem;color:var(--mu);margin-bottom:2rem}
+.ltabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;padding:4px;margin-bottom:1.5rem}
+.ltab{flex:1;padding:.55rem;border-radius:9px;border:none;background:transparent;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;transition:all .2s}
+.ltab.active{background:rgba(124,111,255,.2);color:var(--tx);border:1px solid rgba(124,111,255,.3)}
+.lerr{background:rgba(255,111,111,.1);border:1px solid rgba(255,111,111,.2);border-radius:10px;padding:.6rem .9rem;font-size:.8rem;color:var(--er);margin-bottom:1rem;display:none}
+.fg{margin-bottom:1rem}
+.fl{font-size:.75rem;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;display:block}
+.fi{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--gb);border-radius:10px;padding:.75rem .9rem;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border .2s}
+.fi:focus{border-color:rgba(124,111,255,.5)}
+.fi::placeholder{color:var(--mu)}
+
+/* APP */
+#app{display:none;width:100%;min-height:100vh}
+#app.show{display:flex}
+
+/* SIDEBAR */
+.sidebar{width:var(--sw);min-height:100vh;position:fixed;left:0;top:0;background:rgba(255,255,255,.04);backdrop-filter:blur(24px);border-right:1px solid var(--gb);display:flex;flex-direction:column;padding:2rem 1.25rem;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-.02em;margin-bottom:2.5rem;display:flex;align-items:center;gap:10px}
+.ldot{width:10px;height:10px;border-radius:50%;background:var(--a);box-shadow:0 0 14px var(--a);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 14px var(--a)}50%{box-shadow:0 0 24px var(--a),0 0 40px var(--a)}}
+.nlbl{font-size:.65rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);margin:1.5rem 0 .5rem .5rem}
+.ni{display:flex;align-items:center;gap:12px;padding:.7rem .9rem;border-radius:12px;cursor:pointer;transition:all .2s;color:var(--mu);font-size:.9rem;border:1px solid transparent;text-decoration:none;margin-bottom:2px}
+.ni:hover{background:var(--gh);color:var(--tx);border-color:var(--gb)}
+.ni.active{background:rgba(124,111,255,.15);color:var(--tx);border-color:rgba(124,111,255,.3)}
+.nico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.nbadge{margin-left:auto;background:var(--a);color:#fff;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px}
+.ndot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.sf{margin-top:auto;padding-top:1.5rem;border-top:1px solid var(--gb)}
+.urow{display:flex;align-items:center;gap:10px;padding:.6rem;border-radius:12px}
+.uav{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;flex-shrink:0}
+.rb-admin{font-size:.62rem;background:rgba(124,111,255,.2);color:#B8B0FF;border:1px solid rgba(124,111,255,.3);padding:1px 7px;border-radius:8px;margin-top:2px;display:inline-block}
+.rb-func{font-size:.62rem;background:rgba(111,255,203,.12);color:var(--ok);border:1px solid rgba(111,255,203,.2);padding:1px 7px;border-radius:8px;margin-top:2px;display:inline-block}
+.logoutbtn{display:flex;align-items:center;gap:8px;width:100%;margin-top:.5rem;padding:.55rem .9rem;border-radius:10px;background:rgba(255,111,111,.08);border:1px solid rgba(255,111,111,.15);color:var(--er);font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
+.logoutbtn:hover{background:rgba(255,111,111,.15)}
+
+/* MAIN */
+.main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem;position:relative;z-index:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.ptitle{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:-.03em}
+.trow{display:flex;align-items:center;gap:12px}
+.sb{display:flex;align-items:center;gap:8px;background:var(--gl);border:1px solid var(--gb);border-radius:12px;padding:.5rem 1rem;backdrop-filter:blur(12px)}
+.sb input{background:none;border:none;outline:none;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:.85rem;width:160px}
+.sb input::placeholder{color:var(--mu)}
+.pg{display:none}.pg.active{display:block}
+
+/* CARDS */
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.sc{background:var(--gl);border:1px solid var(--gb);border-radius:20px;padding:1.5rem;backdrop-filter:blur(20px);transition:all .3s;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
+.sc.click{cursor:pointer}
+.sc.click:hover{background:var(--gh);border-color:rgba(124,111,255,.35);transform:translateY(-4px);box-shadow:0 12px 40px rgba(124,111,255,.15)}
+.sc:not(.click):hover{background:var(--gh);transform:translateY(-2px)}
+.ch{font-size:.68rem;color:var(--a);margin-top:4px;opacity:0;transition:opacity .2s}
+.sc.click:hover .ch{opacity:1}
+.ci{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:1rem}
+.cl{font-size:.75rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem}
+.cv{font-family:'Syne',sans-serif;font-size:2rem;font-weight:700;letter-spacing:-.04em;line-height:1;margin-bottom:.5rem}
+.ct{font-size:.75rem;display:flex;align-items:center;gap:4px}
+.up{color:var(--ok)}.dn{color:var(--er)}
+
+/* PANEL */
+.gp{background:var(--gl);border:1px solid var(--gb);border-radius:20px;padding:1.5rem;backdrop-filter:blur(20px);position:relative;overflow:hidden}
+.gp::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.pt{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.bg{display:grid;grid-template-columns:1fr 340px;gap:1.5rem}
+
+/* TABLE */
+.dt{width:100%;border-collapse:collapse}
+.dt thead th{text-align:left;font-size:.7rem;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;padding:0 0 .75rem;border-bottom:1px solid var(--gb)}
+.dt tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+.dt tbody tr:hover{background:rgba(255,255,255,.04)}
+.dt tbody td{padding:.85rem .5rem .85rem 0;font-size:.85rem;vertical-align:middle}
+
+/* BADGES */
+.b{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:500}
+.b-ok{background:rgba(111,255,203,.12);color:var(--ok);border:1px solid rgba(111,255,203,.2)}
+.b-wn{background:rgba(255,207,111,.12);color:var(--wn);border:1px solid rgba(255,207,111,.2)}
+.b-er{background:rgba(255,111,111,.12);color:var(--er);border:1px solid rgba(255,111,111,.2)}
+.b-ac{background:rgba(124,111,255,.15);color:#B8B0FF;border:1px solid rgba(124,111,255,.25)}
+.b-mu{background:rgba(255,255,255,.06);color:var(--mu);border:1px solid var(--gb)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;padding:4px;margin-bottom:1.5rem}
+.tab{flex:1;padding:.5rem 1rem;border-radius:9px;border:none;background:transparent;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.tab.active{background:rgba(124,111,255,.2);color:var(--tx);border:1px solid rgba(124,111,255,.3)}
+.tc{background:rgba(255,255,255,.1);padding:1px 7px;border-radius:10px;font-size:.7rem}
+.tab.active .tc{background:rgba(124,111,255,.3)}
+
+/* TICKET */
+.tk{background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:14px;padding:1.1rem 1.25rem;margin-bottom:.75rem;transition:all .2s;position:relative;overflow:hidden}
+.tk::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.tk.pend::before{background:var(--wn)}.tk.resol::before{background:var(--ok)}
+.tk:hover{background:rgba(255,255,255,.07);transform:translateX(3px)}
+.prio-a{color:var(--er)}.prio-m{color:var(--wn)}.prio-b{color:var(--ok)}
+
+/* FUNC CARDS */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;margin-top:.5rem}
+.fc{background:var(--gl);border:1px solid var(--gb);border-radius:18px;padding:1.25rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.4rem;transition:all .25s;position:relative;overflow:hidden}
+.fc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.fc:hover{background:var(--gh);transform:translateY(-3px)}
+.fav{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;position:relative;flex-shrink:0}
+.fsd{position:absolute;bottom:1px;right:1px;width:13px;height:13px;border-radius:50%;border:2px solid #0A0812}
+.fsd.on{background:var(--ok);box-shadow:0 0 6px var(--ok)}.fsd.off{background:rgba(240,238,255,.2)}
+
+/* HORAS PROGRESS */
+.h-bar-wrap{width:100%;background:rgba(255,255,255,.08);border-radius:20px;height:6px;margin-top:4px;overflow:hidden}
+.h-bar{height:100%;border-radius:20px;transition:width .5s ease}
+.h-bar.green{background:linear-gradient(90deg,var(--ok),#4dffa0)}
+.h-bar.yellow{background:linear-gradient(90deg,var(--wn),#ffd470)}
+.h-bar.red{background:linear-gradient(90deg,var(--er),#ff9090)}
+
+/* DIV VIEW CARDS (por divisão) */
+.divv-card{background:var(--gl);border:1px solid var(--gb);border-radius:20px;padding:1.25rem 1.5rem;margin-bottom:1.25rem}
+.divv-card::before{content:'';display:block;height:1px;margin:-1.25rem -1.5rem 1rem;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
+.divv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.divv-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.divv-members{display:flex;flex-wrap:wrap;gap:.6rem}
+.divv-member{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:10px;padding:.5rem .75rem}
+.divv-mini-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.65rem;flex-shrink:0;position:relative}
+.divv-mini-dot{position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:1.5px solid #0A0812}
+.divv-mini-name{font-size:.8rem;font-weight:500}
+.divv-mini-cargo{font-size:.68rem;color:var(--mu)}
+.divv-empty{font-size:.82rem;color:var(--mu);padding:.5rem 0;font-style:italic}
+
+/* DIVISÕES PAGE */
+.div-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:.5rem}
+.div-card{background:var(--gl);border:1px solid var(--gb);border-radius:18px;padding:1.4rem;transition:all .25s;cursor:pointer;position:relative;overflow:hidden}
+.div-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+.div-card:hover{background:var(--gh);transform:translateY(-3px);border-color:rgba(124,111,255,.3)}
+.div-card.inativa{opacity:.6}
+
+/* BATE-PONTO */
+.bpclock{text-align:center;padding:2rem;background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.2);border-radius:20px;margin-bottom:1.5rem}
+.bptime{font-family:'Syne',sans-serif;font-size:3.5rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+.bpdate{font-size:.85rem;color:var(--mu);margin-top:.25rem}
+.bpfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.75rem;max-height:300px;overflow-y:auto;padding-right:4px}
+.bpfc{background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:14px;padding:1rem;display:flex;flex-direction:column;align-items:center;gap:.4rem;cursor:pointer;transition:all .2s;text-align:center}
+.bpfc:hover{background:rgba(124,111,255,.12);border-color:rgba(124,111,255,.3);transform:translateY(-2px)}
+.bpfc.sel{background:rgba(124,111,255,.2);border-color:rgba(124,111,255,.5)}
+.bprow{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;margin-bottom:.5rem}
+.bprow:hover{background:rgba(255,255,255,.07)}
+.ein{background:rgba(111,255,203,.12);color:var(--ok);border:1px solid rgba(111,255,203,.2);padding:3px 9px;border-radius:8px;font-size:.7rem;font-weight:600}
+.eout{background:rgba(255,111,111,.12);color:var(--er);border:1px solid rgba(255,111,111,.2);padding:3px 9px;border-radius:8px;font-size:.7rem;font-weight:600}
+
+/* PERSONAL */
+.phero{background:linear-gradient(135deg,rgba(124,111,255,.15),rgba(255,111,187,.08));border:1px solid rgba(124,111,255,.2);border-radius:24px;padding:2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;position:relative;overflow:hidden}
+.phero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent)}
+.pbigav{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;flex-shrink:0;position:relative}
+.ponlinedot{position:absolute;bottom:3px;right:3px;width:18px;height:18px;border-radius:50%;border:3px solid #0A0812}
+
+/* HORAS CARD */
+.horas-card{background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.2);border-radius:16px;padding:1.25rem;margin-bottom:1rem}
+.horas-val{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:-.04em}
+.horas-bar-wrap{width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:20px;margin:.6rem 0 .3rem;overflow:hidden}
+.horas-bar{height:100%;border-radius:20px;transition:width .6s ease}
+
+/* TOGGLE */
+.trow2{display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;background:rgba(255,255,255,.05);border:1px solid var(--gb);border-radius:10px}
+.tgl{position:relative;width:40px;height:22px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:22px;cursor:pointer;transition:.3s;border:1px solid var(--gb)}
+.slider::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.3s}
+.tgl input:checked+.slider{background:var(--a);border-color:var(--a)}
+.tgl input:checked+.slider::before{transform:translateX(18px)}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:.55rem 1.1rem;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;transition:all .2s;border:none}
+.btn-p{background:linear-gradient(135deg,var(--a),#9B8FFF);color:#fff;box-shadow:0 4px 20px rgba(124,111,255,.35)}
+.btn-p:hover{box-shadow:0 6px 28px rgba(124,111,255,.5);transform:translateY(-1px)}
+.btn-g{background:var(--gl);border:1px solid var(--gb);color:var(--tx);backdrop-filter:blur(8px)}
+.btn-g:hover{background:var(--gh);border-color:rgba(124,111,255,.3)}
+.btn-ok{background:rgba(111,255,203,.15);border:1px solid rgba(111,255,203,.3);color:var(--ok)}
+.btn-ok:hover{background:rgba(111,255,203,.25)}
+.btn-er{background:rgba(255,111,111,.15);border:1px solid rgba(255,111,111,.3);color:var(--er)}
+.btn-er:hover{background:rgba(255,111,111,.25)}
+.ab{display:flex;gap:6px}
+.ba{width:30px;height:30px;border-radius:8px;border:1px solid var(--gb);background:var(--gl);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .2s;color:var(--tx)}
+.ba:hover{background:rgba(124,111,255,.2);border-color:rgba(124,111,255,.4)}
+.ba.d:hover{background:rgba(255,111,111,.2);border-color:rgba(255,111,111,.4)}
+
+/* QA */
+.qa-list{display:flex;flex-direction:column;gap:.75rem}
+.qab{display:flex;align-items:center;gap:12px;padding:.9rem 1rem;border-radius:14px;background:var(--gl);border:1px solid var(--gb);cursor:pointer;transition:all .25s;color:var(--tx);font-family:'DM Sans',sans-serif;text-align:left}
+.qab:hover{background:var(--gh);transform:translateX(4px)}
+.qi{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ql{font-size:.85rem;font-weight:500}.qd{font-size:.7rem;color:var(--mu);margin-top:1px}
+.qa-arr{margin-left:auto;color:var(--mu);font-size:14px;transition:transform .2s}
+.qab:hover .qa-arr{transform:translateX(3px);color:var(--tx)}
+
+/* SEC LABEL */
+.slbl{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:1.75rem 0 .75rem}
+
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(10,8,18,.75);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.md{background:rgba(20,16,40,.95);border:1px solid var(--gb);border-radius:24px;padding:2rem;width:480px;max-width:90vw;backdrop-filter:blur(30px);animation:mi .25s ease;max-height:90vh;overflow-y:auto}
+@keyframes mi{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mt{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center}
+.mc{width:30px;height:30px;border-radius:8px;background:var(--gl);border:1px solid var(--gb);color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s}
+.mc:hover{background:var(--gh);color:var(--tx)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.mf{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:rgba(20,16,40,.95);border:1px solid var(--gb);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:10px;font-size:.85rem;backdrop-filter:blur(20px);z-index:9999;transform:translateY(80px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+@media(max-width:1100px){.cg{grid-template-columns:repeat(2,1fr)}.bg{grid-template-columns:1fr}}
+</style>
+</head>
+<script src="api.js"></script>
+<body>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="login-screen">
+  <div class="lbox">
+    <div class="llogorow"><div class="llogodot"></div>AdminFlow</div>
+    <div class="lsub">Sistema de Gestão Interna</div>
+    <div class="ltabs">
+      <button class="ltab active" onclick="setLTab('admin',this)"> Administrador</button>
+      <button class="ltab" onclick="setLTab('func',this)"> Funcionário</button>
+    </div>
+    <div id="lerr" class="lerr">Credenciais incorretas. Tente novamente.</div>
+    <div class="fg"><label class="fl">Utilizador</label><input type="text" class="fi" id="l-user" placeholder="Username" autocomplete="off"></div>
+    <div class="fg"><label class="fl">Password</label><input type="password" class="fi" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:.5rem;padding:.8rem" onclick="doLoginAPI()">Entrar →</button>
+  </div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="logo"><div class="ldot"></div>AdminFlow</div>
+
+    <div id="nav-admin">
+      <span class="nlbl">Principal</span>
+      <a class="ni active" href="#" onclick="go('dashboard',this);return false"><span class="nico"></span> Dashboard</a>
+      <a class="ni" href="#" onclick="go('tickets',this);return false"><span class="nico"></span> Tickets<span class="nbadge" id="sb-tk">8</span></a>
+      <a class="ni" href="#" onclick="go('divisoes',this);return false"><span class="nico"></span> Divisões</a>
+      <a class="ni" href="#" onclick="go('funcionarios',this);return false"><span class="nico"></span> Funcionários<span class="ndot"></span></a>
+      <a class="ni" href="#" onclick="go('bateponto',this);return false"><span class="nico"></span> Bate-Ponto</a>
+      <a class="ni" href="#" onclick="go('registros',this);return false"><span class="nico"></span> Registos</a>
+      <span class="nlbl">Sistema</span>
+      <a class="ni" href="#" onclick="go('relatorios',this);return false"><span class="nico"></span> Relatórios</a>
+    </div>
+
+    <div id="nav-func" style="display:none">
+      <span class="nlbl">Minha Área</span>
+      <a class="ni active" href="#" onclick="go('pessoal',this);return false"><span class="nico"></span> Meu Perfil</a>
+      <a class="ni" href="#" onclick="go('meu-ponto',this);return false"><span class="nico"></span> Meu Ponto</a>
+      <a class="ni" href="#" onclick="go('meus-tickets',this);return false"><span class="nico"></span> Meus Tickets</a>
+    </div>
+
+    <div class="sf">
+      <div class="urow">
+        <div class="uav" id="sb-av">AD</div>
+        <div>
+          <div style="font-size:.85rem;font-weight:500" id="sb-nome">Admin</div>
+          <div id="sb-rb"></div>
+        </div>
+      </div>
+      <button class="logoutbtn" onclick="doLogoutAPI()"> Sair da sessão</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1 class="ptitle" id="ptitle">Dashboard</h1>
+      <div class="trow">
+        <div class="sb"><span>🔍</span><input type="text" placeholder="Pesquisar..."></div>
+        <button class="btn btn-g">🔔</button>
+      </div>
+    </div>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="pg active" id="pg-dashboard">
+      <div class="cg">
+        <div class="sc click" onclick="go('tickets',null)"><div class="ci" style="background:rgba(124,111,255,.15)">🎫</div><div class="cl">Tickets</div><div class="cv" id="s-tk">34</div><div class="ct dn">▼ <span id="s-pend">8</span> pendentes</div><div class="ch">→ Ver tickets</div></div>
+        <div class="sc"><div class="ci" style="background:rgba(111,255,203,.15)">✅</div><div class="cl">Resolvidos</div><div class="cv" id="s-resol">26</div><div class="ct up">▲ 8% esta semana</div></div>
+        <div class="sc click" onclick="go('divisoes',null)"><div class="ci" style="background:rgba(255,207,111,.15)">🏢</div><div class="cl">Divisões Ativas</div><div class="cv" id="s-div">4</div><div class="ct up"><span id="s-div-fn">12</span> funcionários</div><div class="ch">→ Ver divisões</div></div>
+        <div class="sc click" onclick="go('funcionarios',null)"><div class="ci" style="background:rgba(255,111,187,.15)">👥</div><div class="cl">Funcionários</div><div class="cv" id="s-fn">12</div><div class="ct up">● <span style="color:var(--ok)" id="s-fn-on">7</span> online</div><div class="ch">→ Ver funcionários</div></div>
+      </div>
+      <div class="bg">
+        <div class="gp">
+          <div class="ph"><span class="pt">Registos Recentes</span><div style="display:flex;gap:8px"><button class="btn btn-g" onclick="renderTable()">🔄</button><button class="btn btn-p" onclick="openM('novoRegistro')">+ Adicionar</button></div></div>
+          <table class="dt"><thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Estado</th><th>Data</th><th>Ações</th></tr></thead><tbody id="tb1"></tbody></table>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.06)">
+            <span style="font-size:.75rem;color:var(--mu)">A mostrar <span id="showing">5</span> de <span id="total">5</span></span>
+            <div style="display:flex;gap:6px"><button class="btn btn-g" style="padding:.4rem .8rem" onclick="prevP()">← Ant.</button><button class="btn btn-g" style="padding:.4rem .8rem" onclick="nextP()">Prox. →</button></div>
+          </div>
+        </div>
+        <div>
+          <div class="gp" style="margin-bottom:1rem">
+            <div class="ph"><span class="pt">Ações Rápidas</span></div>
+            <div class="qa-list">
+              <button class="qab" onclick="runA('exportar')"><div class="qi" style="background:rgba(111,255,203,.12)">📤</div><div><div class="ql">Exportar Dados</div><div class="qd">CSV / Excel</div></div><span class="qa-arr">→</span></button>
+              <button class="qab" onclick="runA('backup')"><div class="qi" style="background:rgba(124,111,255,.12)">💾</div><div><div class="ql">Fazer Backup</div><div class="qd">Base de dados</div></div><span class="qa-arr">→</span></button>
+              <button class="qab" onclick="go('bateponto',null)"><div class="qi" style="background:rgba(255,207,111,.12)">🕐</div><div><div class="ql">Bate-Ponto</div><div class="qd">Registar ponto</div></div><span class="qa-arr">→</span></button>
+            </div>
+          </div>
+          <div class="gp">
+            <div class="ph"><span class="pt">Ligação BD</span><span class="b b-ok">● Online</span></div>
+            <div style="font-size:.75rem;color:var(--mu);line-height:1.8">
+              <div>Host: <span style="color:var(--tx)">localhost</span></div>
+              <div>Base: <span style="color:var(--tx)">workflow</span></div>
+              <div>Sync: <span style="color:var(--tx)" id="lsync">agora mesmo</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TICKETS (admin) ═══ -->
+    <div class="pg" id="pg-tickets">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem">
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700" id="tk-tot">34</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Total</div></div>
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--wn)" id="tk-pn">8</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Pendentes</div></div>
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--ok)" id="tk-rn">26</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Resolvidos</div></div>
+      </div>
+      <div class="gp">
+        <div class="ph"><span class="pt">Todos os Tickets</span><button class="btn btn-p" onclick="openM('novoTicket')">🎫 Novo Ticket</button></div>
+        <div class="tabs"><button class="tab active" id="tbt-p" onclick="switchTabTk('p')">⏳ Pendentes <span class="tc" id="tcc-p">8</span></button><button class="tab" id="tbt-r" onclick="switchTabTk('r')">✅ Resolvidos <span class="tc" id="tcc-r">26</span></button></div>
+        <div id="tl-p"></div><div id="tl-r" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- ═══ MEUS TICKETS (funcionário) ═══ -->
+    <div class="pg" id="pg-meus-tickets">
+      <div class="gp" style="margin-bottom:1.25rem">
+        <div class="ph"><span class="pt">Os Meus Tickets</span><button class="btn btn-p" onclick="openM('novoTicketFunc')">🎫 Criar Ticket</button></div>
+        <div id="my-tickets-list"><div style="text-align:center;padding:2rem;color:var(--mu)">Sem tickets ainda</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ DIVISÕES ═══ -->
+    <div class="pg" id="pg-divisoes">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem">
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700" id="dv-tot">4</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Total</div></div>
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--ok)" id="dv-at">4</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Ativas</div></div>
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--mu)" id="dv-in">0</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Inativas</div></div>
+      </div>
+      <div class="gp" style="margin-bottom:1.5rem">
+        <div class="ph"><span class="pt">Divisões</span><button class="btn btn-p" onclick="openM('novaDivisao')">🏢 Nova Divisão</button></div>
+        <div class="div-grid" id="div-grid"></div>
+      </div>
+      <div class="gp" id="div-detail" style="display:none">
+        <div class="ph"><span class="pt" id="div-dt-title">Funcionários</span><button class="btn btn-g" onclick="document.getElementById('div-detail').style.display='none'">✕</button></div>
+        <div class="fgrid" id="div-dt-grid"></div>
+      </div>
+    </div>
+
+    <!-- ═══ FUNCIONÁRIOS ═══ -->
+    <div class="pg" id="pg-funcionarios">
+      <div class="tabs" style="margin-bottom:1.5rem">
+        <button class="tab active" id="ftab-lista" onclick="switchFuncTab('lista')">👥 Lista de Funcionários</button>
+        <button class="tab" id="ftab-divisoes" onclick="switchFuncTab('divisoes')">🏢 Por Divisão</button>
+      </div>
+
+      <!-- Sub: Lista -->
+      <div id="fsub-lista">
+        <div class="gp">
+          <div class="ph">
+            <span class="pt">Funcionários</span>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:.8rem;color:var(--mu)"><span style="color:var(--ok)">●</span> <span id="fn-on">7</span> online &nbsp;·&nbsp; <span id="fn-off">5</span> offline</span>
+              <button class="btn btn-p" onclick="openM('novoFunc')">+ Adicionar</button>
+            </div>
+          </div>
+          <div class="slbl" style="color:var(--ok)">● Em Serviço</div>
+          <div class="fgrid" id="fg-online"></div>
+          <div class="slbl" style="margin-top:2rem">○ Fora de Serviço</div>
+          <div class="fgrid" id="fg-offline"></div>
+        </div>
+      </div>
+
+      <!-- Sub: Por Divisão (view only) -->
+      <div id="fsub-divisoes" style="display:none">
+        <div class="gp" style="margin-bottom:1rem;background:rgba(124,111,255,.05);border-color:rgba(124,111,255,.2)">
+          <div style="display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--mu)">
+            <span style="font-size:1.1rem">👁️</span>
+            Vista de leitura — apenas visualização dos funcionários por divisão.
+          </div>
+        </div>
+        <div id="divv-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══ BATE-PONTO (admin) ═══ -->
+    <div class="pg" id="pg-bateponto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+        <div class="gp">
+          <div class="bpclock"><div class="bptime" id="bp-clock">00:00:00</div><div class="bpdate" id="bp-date"></div></div>
+          <div class="ph" style="margin-bottom:1rem"><span class="pt">Selecionar Funcionário</span></div>
+          <div class="bpfgrid" id="bp-fgrid"></div>
+          <div style="display:flex;gap:8px;margin-top:1.25rem">
+            <button class="btn btn-ok" style="flex:1;justify-content:center" onclick="regPonto('Entrada')">▶ Entrada</button>
+            <button class="btn btn-er" style="flex:1;justify-content:center" onclick="regPonto('Saída')">■ Saída</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-g" style="flex:1;justify-content:center;font-size:.78rem" onclick="regTurnoCompleto()">📋 Registar Turno Completo</button>
+          </div>
+          <div style="margin-top:.75rem;padding:.7rem 1rem;background:rgba(255,255,255,.04);border-radius:10px;font-size:.78rem;color:var(--mu)" id="bp-sel-info">Nenhum funcionário selecionado</div>
+        </div>
+        <div class="gp">
+          <div class="ph"><span class="pt">Registos de Hoje</span><span class="b b-ac" id="bp-cnt">0 registos</span></div>
+          <div id="bp-list"><div style="text-align:center;padding:2rem;color:var(--mu)">Sem registos ainda hoje</div></div>
+        </div>
+      </div>
+      <div class="gp">
+        <div class="ph"><span class="pt">Histórico Geral</span><button class="btn btn-g" onclick="runA('exportar')">📤 Exportar</button></div>
+        <table class="dt"><thead><tr><th>Funcionário</th><th>Divisão</th><th>Tipo</th><th>Duração</th><th>Data / Hora</th></tr></thead><tbody id="bp-hist"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ═══ REGISTOS ═══ -->
+    <div class="pg" id="pg-registros">
+      <div class="gp"><div class="ph"><span class="pt">Todos os Registos</span><button class="btn btn-p" onclick="openM('novoRegistro')">+ Adicionar</button></div>
+        <table class="dt"><thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Estado</th><th>Data</th><th>Ações</th></tr></thead><tbody id="tb2"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ═══ RELATÓRIOS ═══ -->
+    <div class="pg" id="pg-relatorios"><div class="gp" style="text-align:center;padding:4rem 2rem"><div style="font-size:3rem;margin-bottom:1rem">📈</div><div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:.5rem">Relatórios</div><div style="color:var(--mu);font-size:.9rem">Liga aqui o teu PHP de relatórios</div></div></div>
+
+    <!-- ═══ PESSOAL ═══ -->
+    <div class="pg" id="pg-pessoal">
+      <div class="phero" id="p-hero">
+        <div class="pbigav" id="p-bigav"><span id="p-ini"></span><div class="ponlinedot" id="p-dot"></div></div>
+        <div>
+          <h2 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:.3rem" id="p-nome">—</h2>
+          <div id="p-cargo-b"></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:.5rem">
+            <span style="font-size:.78rem;color:var(--mu)">🏢 <span id="p-div">—</span></span>
+            <span style="font-size:.78rem;color:var(--mu)">🕐 Turno: <span id="p-turno">—</span></span>
+            <span style="font-size:.78rem" id="p-status-item">● <span id="p-status">—</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horas do mês -->
+      <div class="horas-card" id="p-horas-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem">
+          <div>
+            <div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem">Horas Trabalhadas — Mês Atual</div>
+            <div style="display:flex;align-items:baseline;gap:6px">
+              <div class="horas-val" id="p-horas-val">0.0h</div>
+              <div style="font-size:1rem;color:var(--mu);font-family:'Syne',sans-serif">/ <span id="p-meta-val">160h</span></div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.72rem;color:var(--mu)">Progresso</div>
+            <div style="font-size:1.4rem;font-family:'Syne',sans-serif;font-weight:700" id="p-pct">0%</div>
+          </div>
+        </div>
+        <div class="horas-bar-wrap"><div class="horas-bar" id="p-horas-bar" style="width:0%"></div></div>
+        <div style="font-size:.72rem;color:var(--mu);margin-top:.4rem" id="p-horas-sub">0h em aberto</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700" id="my-hoje">0</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Registos Hoje</div></div>
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--ok)" id="my-ent">—</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Última Entrada</div></div>
+        <div class="gp" style="text-align:center;padding:1.25rem"><div style="font-size:2rem;font-family:'Syne',sans-serif;font-weight:700;color:var(--wn)" id="my-sai">—</div><div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Última Saída</div></div>
+      </div>
+
+      <div class="gp">
+        <div class="ph"><span class="pt">As Minhas Informações</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div style="background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;padding:1rem"><div style="font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Nome</div><div style="font-weight:500" id="i-nome">—</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;padding:1rem"><div style="font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Cargo</div><div style="font-weight:500" id="i-cargo">—</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;padding:1rem"><div style="font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Divisão</div><div style="font-weight:500;color:var(--a)" id="i-div">—</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid var(--gb);border-radius:12px;padding:1rem"><div style="font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Turno</div><div style="font-weight:500" id="i-turno">—</div></div>
+        </div>
+        <div style="margin-top:1rem;padding:1rem;background:rgba(255,255,255,.04);border-radius:12px;font-size:.8rem;color:var(--mu)">ℹ️ Para alterar qualquer informação, contacta o Administrador.</div>
+      </div>
+    </div>
+
+    <!-- ═══ MEU PONTO ═══ -->
+    <div class="pg" id="pg-meu-ponto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+        <div class="gp">
+          <div class="bpclock"><div class="bptime" id="my-clock">00:00:00</div><div class="bpdate" id="my-date"></div></div>
+          <!-- Horas do mês no bate ponto pessoal -->
+          <div style="background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.2);border-radius:14px;padding:1rem;margin-bottom:1rem;text-align:center">
+            <div style="font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem">Horas Mês</div>
+            <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800" id="my-h-val">0.0h <span style="font-size:.9rem;font-weight:500;color:var(--mu)">/ <span id="my-h-meta">160h</span></span></div>
+            <div class="horas-bar-wrap" style="margin-top:.5rem"><div class="horas-bar" id="my-h-bar" style="width:0%"></div></div>
+          </div>
+          <div style="text-align:center;margin-bottom:1rem"><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700" id="my-p-nome"></div><div style="font-size:.78rem;color:var(--mu)" id="my-p-cargo"></div></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ok" style="flex:1;justify-content:center;padding:.9rem" onclick="regMeuPonto('Entrada')">▶ Entrada</button>
+            <button class="btn btn-er" style="flex:1;justify-content:center;padding:.9rem" onclick="regMeuPonto('Saída')">■ Saída</button>
+          </div>
+          <div style="margin-top:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.04);border-radius:12px;font-size:.82rem" id="my-lr"><span style="color:var(--mu)">Sem registos hoje ainda.</span></div>
+        </div>
+        <div class="gp">
+          <div class="ph"><span class="pt">Os Meus Registos Hoje</span><span class="b b-ac" id="my-cnt">0</span></div>
+          <div id="my-bp-list"><div style="text-align:center;padding:2rem;color:var(--mu)">Sem registos ainda hoje</div></div>
+        </div>
+      </div>
+      <div class="gp">
+        <div class="ph"><span class="pt">Histórico Pessoal</span></div>
+        <table class="dt"><thead><tr><th>Tipo</th><th>Duração</th><th>Data</th><th>Hora</th></tr></thead><tbody id="my-hist"></tbody></table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════ MODAIS ════ -->
+<div class="mo" id="m-novoRegistro"><div class="md">
+  <div class="mt">Novo Registo <button class="mc" onclick="closeM('novoRegistro')">✕</button></div>
+  <div class="fr"><div class="fg"><label class="fl">Nome</label><input type="text" class="fi" id="r-nome" placeholder="Nome"></div><div class="fg"><label class="fl">Categoria</label><select class="fi" id="r-cat"><option>Categoria A</option><option>Categoria B</option><option>Categoria C</option></select></div></div>
+  <div class="fg"><label class="fl">Descrição</label><textarea class="fi" rows="3" id="r-desc" style="resize:vertical"></textarea></div>
+  <div class="fr"><div class="fg"><label class="fl">Estado</label><select class="fi" id="r-est"><option>Activo</option><option>Pendente</option><option>Inactivo</option></select></div><div class="fg"><label class="fl">Data</label><input type="date" class="fi" id="r-data"></div></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeM('novoRegistro')">Cancelar</button><button class="btn btn-p" onclick="saveReg()">💾 Guardar</button></div>
+</div></div>
+
+<!-- Ticket admin -->
+<div class="mo" id="m-novoTicket"><div class="md">
+  <div class="mt">Novo Ticket <button class="mc" onclick="closeM('novoTicket')">✕</button></div>
+  <div class="fg"><label class="fl">Assunto</label><input type="text" class="fi" placeholder="Ex: Erro no login" id="tk-a"></div>
+  <div class="fg"><label class="fl">Descrição</label><textarea class="fi" rows="3" id="tk-d" style="resize:vertical"></textarea></div>
+  <div class="fr"><div class="fg"><label class="fl">Prioridade</label><select class="fi" id="tk-p"><option value="Alta">🔴 Alta</option><option value="Média" selected>🟡 Média</option><option value="Baixa">🟢 Baixa</option></select></div><div class="fg"><label class="fl">Atribuído a</label><select class="fi" id="tk-at"></select></div></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeM('novoTicket')">Cancelar</button><button class="btn btn-p" onclick="saveTicket(false)">🎫 Criar</button></div>
+</div></div>
+
+<!-- Ticket funcionário — nome fixo, sem dropdown -->
+<div class="mo" id="m-novoTicketFunc"><div class="md">
+  <div class="mt">Criar Ticket <button class="mc" onclick="closeM('novoTicketFunc')">✕</button></div>
+  <div class="fg" style="background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.2);border-radius:10px;padding:.8rem">
+    <div style="font-size:.72rem;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem">A criar como</div>
+    <div style="font-weight:600;font-size:.9rem" id="tkf-nome-display">—</div>
+  </div>
+  <div class="fg"><label class="fl">Assunto</label><input type="text" class="fi" placeholder="Ex: Problema com acesso" id="tkf-a"></div>
+  <div class="fg"><label class="fl">Descrição</label><textarea class="fi" rows="3" id="tkf-d" style="resize:vertical" placeholder="Descreve o problema..."></textarea></div>
+  <div class="fg"><label class="fl">Prioridade</label><select class="fi" id="tkf-p"><option value="Alta">🔴 Alta</option><option value="Média" selected>🟡 Média</option><option value="Baixa">🟢 Baixa</option></select></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeM('novoTicketFunc')">Cancelar</button><button class="btn btn-p" onclick="saveTicket(true)">🎫 Criar Ticket</button></div>
+</div></div>
+
+<!-- Nova divisão -->
+<div class="mo" id="m-novaDivisao"><div class="md">
+  <div class="mt">Nova Divisão <button class="mc" onclick="closeM('novaDivisao')">✕</button></div>
+  <div class="fr"><div class="fg"><label class="fl">Nome</label><input type="text" class="fi" placeholder="Ex: Recursos Humanos" id="dv-nome"></div><div class="fg"><label class="fl">Responsável</label><select class="fi" id="dv-resp"></select></div></div>
+  <div class="fg"><label class="fl">Descrição</label><textarea class="fi" rows="2" id="dv-desc" style="resize:vertical"></textarea></div>
+  <div class="fg"><div class="trow2"><span style="font-size:.85rem">Divisão Ativa</span><label class="tgl"><input type="checkbox" id="dv-ativa" checked><span class="slider"></span></label></div></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeM('novaDivisao')">Cancelar</button><button class="btn btn-p" onclick="saveDivisao()">🏢 Criar</button></div>
+</div></div>
+
+<!-- Novo funcionário -->
+<div class="mo" id="m-novoFunc"><div class="md">
+  <div class="mt">Novo Funcionário <button class="mc" onclick="closeM('novoFunc')">✕</button></div>
+  <div class="fr"><div class="fg"><label class="fl">Nome Completo</label><input type="text" class="fi" placeholder="Nome" id="fn-nome"></div><div class="fg"><label class="fl">Cargo</label><input type="text" class="fi" placeholder="Ex: Técnico" id="fn-cargo"></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Turno</label><select class="fi" id="fn-turno">
+    <option value="Manhã (08h–16h)">Manhã (08h–16h)</option>
+    <option value="Tarde (16h–00h)">Tarde (16h–00h)</option>
+    <option value="Noite (00h–08h)">Noite (00h–08h)</option>
+    <option value="Dia Completo (08h–20h)">Dia Completo (08h–20h)</option>
+    <option value="12H (07h–19h)">12H (07h–19h)</option>
+    <option value="24H">24H</option>
+    <option value="Rotativo">Rotativo</option>
+  </select></div><div class="fg"><label class="fl">Divisão</label><select class="fi" id="fn-div"></select></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Meta de Horas/Mês</label><input type="number" class="fi" id="fn-meta" placeholder="160" value="160" min="1" max="744"></div><div class="fg"><label class="fl">Login</label><input type="text" class="fi" placeholder="Ex: joao" id="fn-login"></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Password</label><input type="text" class="fi" placeholder="ponto123" id="fn-pass" value="ponto123"></div><div></div></div>
+  <div class="fg"><div class="trow2"><span style="font-size:.85rem">Em Serviço agora</span><label class="tgl"><input type="checkbox" id="fn-online" checked><span class="slider"></span></label></div></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeM('novoFunc')">Cancelar</button><button class="btn btn-p" onclick="saveFunc()">💾 Guardar</button></div>
+</div></div>
+
+<!-- Editar funcionário -->
+<div class="mo" id="m-editFunc"><div class="md">
+  <div class="mt">Editar Funcionário <button class="mc" onclick="closeM('editFunc')">✕</button></div>
+  <input type="hidden" id="ef-id">
+  <div class="fr"><div class="fg"><label class="fl">Nome</label><input type="text" class="fi" id="ef-nome"></div><div class="fg"><label class="fl">Cargo</label><input type="text" class="fi" id="ef-cargo"></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Turno</label><select class="fi" id="ef-turno">
+    <option value="Manhã (08h–16h)">Manhã (08h–16h)</option>
+    <option value="Tarde (16h–00h)">Tarde (16h–00h)</option>
+    <option value="Noite (00h–08h)">Noite (00h–08h)</option>
+    <option value="Dia Completo (08h–20h)">Dia Completo (08h–20h)</option>
+    <option value="12H (07h–19h)">12H (07h–19h)</option>
+    <option value="24H">24H</option>
+    <option value="Rotativo">Rotativo</option>
+  </select></div><div class="fg"><label class="fl">Divisão</label><select class="fi" id="ef-div"></select></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Meta Horas/Mês</label><input type="number" class="fi" id="ef-meta" min="1" max="744"></div><div class="fg"><label class="fl">Login</label><input type="text" class="fi" id="ef-login"></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Password</label><input type="text" class="fi" id="ef-pass"></div><div></div></div>
+  <div class="fg"><div class="trow2"><span style="font-size:.85rem">Em Serviço agora</span><label class="tgl"><input type="checkbox" id="ef-online"><span class="slider"></span></label></div></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeM('editFunc')">Cancelar</button><button class="btn btn-p" onclick="updateFunc()">💾 Guardar</button></div>
+</div></div>
+
+<div class="toast" id="toast"><span id="ti">✅</span><span id="tm">OK</span></div>
+
+<script>
+// ══════════════════════════════════════
+// DADOS
+// ══════════════════════════════════════
+const C=[['rgba(124,111,255,.25)','#C4BEFF'],['rgba(111,255,203,.18)','#6FFFCB'],['rgba(255,111,187,.2)','#FF9FD0'],['rgba(255,207,111,.2)','#FFCF6F'],['rgba(111,187,255,.2)','#9FD0FF'],['rgba(203,111,255,.2)','#D0A0FF']];
+
+let users=[
+  {login:'admin',   pass:'admin123', role:'admin',func_id:null},
+  {login:'joao',    pass:'ponto123', role:'func', func_id:1},
+  {login:'ana',     pass:'ponto123', role:'func', func_id:2},
+  {login:'pedro',   pass:'ponto123', role:'func', func_id:3},
+  {login:'maria',   pass:'ponto123', role:'func', func_id:4},
+  {login:'rui',     pass:'ponto123', role:'func', func_id:5},
+  {login:'carla',   pass:'ponto123', role:'func', func_id:6},
+  {login:'tiago',   pass:'ponto123', role:'func', func_id:7},
+  {login:'ines',    pass:'ponto123', role:'func', func_id:8},
+  {login:'bruno',   pass:'ponto123', role:'func', func_id:9},
+  {login:'sofia',   pass:'ponto123', role:'func', func_id:10},
+  {login:'andre',   pass:'ponto123', role:'func', func_id:11},
+  {login:'catia',   pass:'ponto123', role:'func', func_id:12},
+];
+
+let divisoes=[
+  {id:1,nome:'Tecnologia de Informação',desc:'Infraestrutura, suporte e desenvolvimento.',resp:'Pedro Nunes',ativa:true},
+  {id:2,nome:'Recursos Humanos',        desc:'Gestão de pessoal e recrutamento.',         resp:'Maria Santos',ativa:true},
+  {id:3,nome:'Suporte ao Cliente',      desc:'Atendimento e resolução de problemas.',     resp:'Ana Costa',   ativa:true},
+  {id:4,nome:'Desenvolvimento',         desc:'Software e manutenção de sistemas.',        resp:'Rui Ferreira', ativa:true},
+];
+
+let funcs=[
+  {id:1, nome:'João Silva',   cargo:'Técnico de TI',   turno:'Manhã (08h–16h)', div_id:1, online:true,  meta:160},
+  {id:2, nome:'Ana Costa',    cargo:'Suporte N1',       turno:'Tarde (16h–00h)', div_id:3, online:true,  meta:160},
+  {id:3, nome:'Pedro Nunes',  cargo:'Sysadmin',         turno:'Manhã (08h–16h)', div_id:1, online:true,  meta:160},
+  {id:4, nome:'Maria Santos', cargo:'Help Desk',         turno:'Dia Completo (08h–20h)', div_id:2, online:true,  meta:220},
+  {id:5, nome:'Rui Ferreira', cargo:'Dev Backend',       turno:'Manhã (08h–16h)', div_id:4, online:true,  meta:160},
+  {id:6, nome:'Carla Mendes', cargo:'Dev Frontend',      turno:'Tarde (16h–00h)', div_id:4, online:true,  meta:160},
+  {id:7, nome:'Tiago Rocha',  cargo:'Redes',             turno:'12H (07h–19h)',   div_id:1, online:true,  meta:240},
+  {id:8, nome:'Inês Lopes',   cargo:'Suporte N2',        turno:'Manhã (08h–16h)', div_id:3, online:false, meta:160},
+  {id:9, nome:'Bruno Alves',  cargo:'Técnico de TI',    turno:'Tarde (16h–00h)', div_id:1, online:false, meta:160},
+  {id:10,nome:'Sofia Gomes',  cargo:'Analista',          turno:'Noite (00h–08h)', div_id:2, online:false, meta:160},
+  {id:11,nome:'André Lima',   cargo:'Help Desk',         turno:'Tarde (16h–00h)', div_id:3, online:false, meta:160},
+  {id:12,nome:'Cátia Pinto',  cargo:'Gestão de Proj.',   turno:'Rotativo',        div_id:2, online:false, meta:160},
+];
+
+let tickets=[
+  {id:1,assunto:'Erro no login',             desc:'Utilizador não consegue autenticar.',prio:'Alta', atrib:'João Silva', estado:'Pendente', data:'2024-05-05'},
+  {id:2,assunto:'Impressora não reconhecida',desc:'Driver desatualizado.',              prio:'Média',atrib:'Ana Costa',  estado:'Pendente', data:'2024-05-04'},
+  {id:3,assunto:'Lentidão na base de dados', desc:'Queries demorando +10s.',             prio:'Alta', atrib:'Pedro Nunes',estado:'Pendente', data:'2024-05-04'},
+  {id:4,assunto:'Email em spam',             desc:'Domínio em blacklist.',               prio:'Média',atrib:'João Silva', estado:'Pendente', data:'2024-05-03'},
+  {id:5,assunto:'VPN sem acesso',            desc:'Certificado expirado.',               prio:'Alta', atrib:'Ana Costa',  estado:'Pendente', data:'2024-05-03'},
+  {id:6,assunto:'Atualização do sistema',    desc:'Windows Update concluído.',            prio:'Baixa',atrib:'Pedro Nunes',estado:'Resolvido',data:'2024-05-02'},
+  {id:7,assunto:'Novo utilizador',           desc:'Conta ativada.',                       prio:'Baixa',atrib:'Maria Santos',estado:'Resolvido',data:'2024-05-01'},
+  {id:8,assunto:'Backup automático',         desc:'Agendado para as 02:00.',              prio:'Média',atrib:'João Silva', estado:'Resolvido',data:'2024-04-30'},
+];
+
+let regs=[
+  {id:1,nome:'Produto Alpha',   cat:'Categoria A',estado:'Activo',  data:'2024-05-01'},
+  {id:2,nome:'Serviço Beta',    cat:'Categoria B',estado:'Pendente',data:'2024-05-02'},
+  {id:3,nome:'Item Gamma',      cat:'Categoria A',estado:'Inactivo',data:'2024-05-03'},
+  {id:4,nome:'Produto Delta',   cat:'Categoria C',estado:'Activo',  data:'2024-05-04'},
+  {id:5,nome:'Serviço Épsilon', cat:'Categoria B',estado:'Activo',  data:'2024-05-05'},
+];
+
+let bpLog=[];       // todos os registos
+let bpSelected=null;
+let rPage=1, rPS=5;
+let tkTab='p';
+let fTab='lista';
+let session=null;
+
+// ══════════════════════════════════════
+// HORAS
+// ══════════════════════════════════════
+// Calcula minutos trabalhados (mês atual) para um funcionário
+function calcMinMes(fid){
+  const now=new Date();
+  const mesAtual=`${now.getFullYear()}-${now.getMonth()}`;
+  const logs=bpLog.filter(e=>e.func_id===fid);
+  const sorted=[...logs].reverse(); // mais antigo primeiro
+  let total=0, lastEnt=null;
+  for(const e of sorted){
+    const em=`${e.ts.getFullYear()}-${e.ts.getMonth()}`;
+    if(em!==mesAtual) continue;
+    if(e.tipo==='Entrada') lastEnt=e;
+    else if(e.tipo==='Saída'&&lastEnt){
+      total+=(e.ts-lastEnt.ts)/60000;
+      lastEnt=null;
+    }
+  }
+  // sessão aberta (ainda não bateu saída)
+  if(lastEnt){
+    const em=`${lastEnt.ts.getFullYear()}-${lastEnt.ts.getMonth()}`;
+    if(em===mesAtual) total+=(now-lastEnt.ts)/60000;
+  }
+  return total; // minutos
+}
+
+function fmtH(min){
+  const h=Math.floor(min/60), m=Math.round(min%60);
+  if(h===0) return `${m}min`;
+  return `${h}.${String(m).padStart(2,'0').slice(0,1)}h`;
+}
+
+function calcDuracao(e1, e2){
+  if(!e1||!e2) return '—';
+  const diff=(e2.ts-e1.ts)/60000;
+  const h=Math.floor(diff/60), m=Math.round(diff%60);
+  return `${h}h${String(m).padStart(2,'0')}m`;
+}
+
+// Encontra o par (entrada→saída) mais recente para uma entrada
+function findPairedSaida(entries, entradaEntry){
+  const idx=entries.indexOf(entradaEntry);
+  for(let i=idx-1;i>=0;i--){
+    if(entries[i].tipo==='Saída') return entries[i];
+  }
+  return null;
+}
+
+// ══════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════
+let ltabMode='admin';
+function setLTab(m,el){
+  ltabMode=m;
+  document.querySelectorAll('.ltab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function doLoginAPI(){
+  const login=document.getElementById('l-user').value.trim().toLowerCase();
+  const pass=document.getElementById('l-pass').value;
+  /* PHP:
+  const res = await fetch('/auth.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,pass})});
+  const data = await res.json();
+  if(!data.ok){...} else session=data.user;
+  */
+  const u=users.find(u=>u.login===login&&u.pass===pass);
+  if(!u||(ltabMode==='admin'&&u.role!=='admin')||(ltabMode==='func'&&u.role!=='func')){
+    document.getElementById('lerr').style.display='block'; return;
+  }
+  document.getElementById('lerr').style.display='none';
+  session=u; bootApp();
+}
+
+function bootApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  const isAdmin=session.role==='admin';
+  document.getElementById('nav-admin').style.display=isAdmin?'block':'none';
+  document.getElementById('nav-func').style.display=isAdmin?'none':'block';
+  document.getElementById('sb-rb').innerHTML=isAdmin?'<span class="rb-admin">Admin</span>':'<span class="rb-func">Funcionário</span>';
+  if(isAdmin){
+    const ini='AD'; document.getElementById('sb-av').textContent=ini; document.getElementById('sb-nome').textContent='Admin';
+    go('dashboard',document.querySelector('#nav-admin .ni'));
+    renderTable(); updateStats();
+  } else {
+    const f=funcs.find(f=>f.id===session.func_id);
+    const ini=f?f.nome.split(' ').slice(0,2).map(n=>n[0]).join(''):'?';
+    document.getElementById('sb-av').textContent=ini;
+    document.getElementById('sb-nome').textContent=f?f.nome.split(' ')[0]:'—';
+    go('pessoal',document.querySelector('#nav-func .ni'));
+    renderPessoal();
+  }
+}
+
+function doLogoutAPI(){
+  session=null;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('l-user').value='';
+  document.getElementById('l-pass').value='';
+  document.getElementById('lerr').style.display='none';
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+}
+
+// ══════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════
+const TITLES={dashboard:'Dashboard',tickets:'Tickets de Suporte',divisoes:'Divisões',funcionarios:'Funcionários',bateponto:'Bate-Ponto',registros:'Registos',relatorios:'Relatórios',pessoal:'Meu Perfil','meu-ponto':'Meu Ponto','meus-tickets':'Meus Tickets'};
+
+function go(id,el){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('pg-'+id);if(pg)pg.classList.add('active');
+  document.getElementById('ptitle').textContent=TITLES[id]||id;
+  const map={tickets:renderTickets,divisoes:renderDivisoes,funcionarios:renderFuncs,bateponto:renderBP,registros:renderRegs2,pessoal:renderPessoal,'meu-ponto':renderMeuPonto,'meus-tickets':renderMeusTickets};
+  if(map[id])map[id]();
+  updateStats();
+}
+
+// ══════════════════════════════════════
+// STATS
+// ══════════════════════════════════════
+function updateStats(){
+  const pend=tickets.filter(t=>t.estado==='Pendente');
+  const on=funcs.filter(f=>f.online);
+  const divAt=divisoes.filter(d=>d.ativa);
+  set('s-tk',tickets.length);set('s-pend',pend.length);set('s-resol',tickets.filter(t=>t.estado==='Resolvido').length);
+  set('s-div',divAt.length);set('s-div-fn',funcs.length);
+  set('s-fn',funcs.length);set('s-fn-on',on.length);
+  set('sb-tk',pend.length);
+  set('fn-on',on.length);set('fn-off',funcs.filter(f=>!f.online).length);
+  set('dv-tot',divisoes.length);set('dv-at',divAt.length);set('dv-in',divisoes.filter(d=>!d.ativa).length);
+  set('tk-tot',tickets.length);set('tk-pn',pend.length);set('tk-rn',tickets.filter(t=>t.estado==='Resolvido').length);
+}
+
+// ══════════════════════════════════════
+// REGISTOS
+// ══════════════════════════════════════
+function rowH(r){const bc=r.estado==='Activo'?'b-ok':r.estado==='Pendente'?'b-wn':'b-er';return`<tr><td><span style="color:var(--mu);font-size:.78rem">#${r.id}</span></td><td><span style="font-weight:500">${r.nome}</span></td><td><span style="color:var(--mu)">${r.cat}</span></td><td><span class="b ${bc}">${r.estado}</span></td><td><span style="color:var(--mu);font-size:.78rem">${fd(r.data)}</span></td><td><div class="ab"><button class="ba" onclick="editRegM(${r.id})">✏️</button><button class="ba d" onclick="delReg(${r.id})">🗑️</button></div></td></tr>`;}
+function renderTable(){const el=document.getElementById('tb1');if(!el)return;const s=(rPage-1)*rPS,rows=regs.slice(s,s+rPS);el.innerHTML=rows.map(rowH).join('');set('showing',rows.length);set('total',regs.length);}
+function renderRegs2(){const el=document.getElementById('tb2');if(!el)return;el.innerHTML=regs.map(rowH).join('');}
+function saveReg(){const nome=v('r-nome').trim();if(!nome){showT('Preencha o nome!','wn');return;}const id=Math.max(...regs.map(r=>r.id),0)+1;regs.unshift({id,nome,cat:v('r-cat'),estado:v('r-est'),data:v('r-data')});closeM('novoRegistro');renderTable();showT('Registo criado!','ok');}
+function editRegM(id){const r=regs.find(r=>r.id===id);if(!r)return;document.getElementById('r-nome').value=r.nome;document.getElementById('r-cat').value=r.cat;document.getElementById('r-est').value=r.estado;document.getElementById('r-data').value=r.data;openM('novoRegistro');}
+function delReg(id){if(!confirm('Eliminar?'))return;regs=regs.filter(r=>r.id!==id);renderTable();showT('Eliminado!','er');}
+function nextP(){if(rPage*rPS<regs.length){rPage++;renderTable();}}
+function prevP(){if(rPage>1){rPage--;renderTable();}}
+
+// ══════════════════════════════════════
+// TICKETS
+// ══════════════════════════════════════
+const PRIOC={Alta:'prio-a',Média:'prio-m',Baixa:'prio-b'},PRIOI={Alta:'🔴',Média:'🟡',Baixa:'🟢'};
+function ticketCard(t,allowResolve){
+  const ip=t.estado==='Pendente';
+  return`<div class="tk ${ip?'pend':'resol'}"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.4rem"><div><div style="font-size:.9rem;font-weight:500">${t.assunto}</div><div style="font-size:.72rem;color:var(--mu);margin-top:.3rem;display:flex;gap:12px"><span>👤 ${t.atrib}</span><span>📅 ${fd(t.data)}</span></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="b ${ip?'b-wn':'b-ok'}">${t.estado}</span><span style="font-size:.72rem" class="${PRIOC[t.prio]}">${PRIOI[t.prio]} ${t.prio}</span></div></div><div style="font-size:.78rem;color:var(--mu)">${t.desc}</div>${(ip&&allowResolve)?`<div style="margin-top:10px"><button class="btn btn-g" style="font-size:.75rem;padding:.3rem .8rem" onclick="resolveT(${t.id})">✅ Marcar como resolvido</button></div>`:''}</div>`;
+}
+
+function renderTickets(){
+  const pend=tickets.filter(t=>t.estado==='Pendente'),resol=tickets.filter(t=>t.estado==='Resolvido');
+  set('tcc-p',pend.length);set('tcc-r',resol.length);
+  document.getElementById('tl-p').innerHTML=pend.length?pend.map(t=>ticketCard(t,true)).join(''):'<div style="text-align:center;padding:2rem;color:var(--mu)">Sem tickets pendentes 🎉</div>';
+  document.getElementById('tl-r').innerHTML=resol.length?resol.map(t=>ticketCard(t,false)).join(''):'<div style="text-align:center;padding:2rem;color:var(--mu)">Sem tickets resolvidos</div>';
+  switchTabTk(tkTab);updateStats();
+}
+
+function switchTabTk(t){tkTab=t;document.querySelectorAll('#pg-tickets .tab').forEach(b=>b.classList.remove('active'));document.getElementById('tbt-'+t).classList.add('active');document.getElementById('tl-p').style.display=t==='p'?'block':'none';document.getElementById('tl-r').style.display=t==='r'?'block':'none';}
+
+// Salva ticket — isFuncModal: true → usa modal do funcionário com nome fixo
+function saveTicket(isFunc){
+  if(isFunc){
+    const f=funcs.find(f=>f.id===session.func_id);if(!f)return;
+    const a=v('tkf-a').trim();if(!a){showT('Preencha o assunto!','wn');return;}
+    const id=Math.max(...tickets.map(t=>t.id),0)+1;
+    tickets.unshift({id,assunto:a,desc:v('tkf-d'),prio:v('tkf-p'),atrib:f.nome,estado:'Pendente',data:new Date().toISOString().split('T')[0]});
+    closeM('novoTicketFunc');renderMeusTickets();showT('Ticket criado!','ok');
+  } else {
+    const a=v('tk-a').trim();if(!a){showT('Preencha o assunto!','wn');return;}
+    const id=Math.max(...tickets.map(t=>t.id),0)+1;
+    tickets.unshift({id,assunto:a,desc:v('tk-d'),prio:v('tk-p'),atrib:v('tk-at'),estado:'Pendente',data:new Date().toISOString().split('T')[0]});
+    closeM('novoTicket');renderTickets();showT('Ticket criado!','ok');
+  }
+  updateStats();
+}
+
+function resolveT(id){const t=tickets.find(t=>t.id===id);if(!t)return;t.estado='Resolvido';renderTickets();showT('Ticket resolvido!','ok');}
+
+// Meus tickets (funcionário)
+function renderMeusTickets(){
+  if(!session)return;
+  const f=funcs.find(f=>f.id===session.func_id);if(!f)return;
+  const meus=tickets.filter(t=>t.atrib===f.nome);
+  const el=document.getElementById('my-tickets-list');
+  el.innerHTML=meus.length?meus.map(t=>ticketCard(t,false)).join(''):'<div style="text-align:center;padding:2rem;color:var(--mu)">Ainda não tens tickets</div>';
+}
+
+// ══════════════════════════════════════
+// DIVISÕES
+// ══════════════════════════════════════
+function renderDivisoes(){
+  updateStats();
+  document.getElementById('div-grid').innerHTML=divisoes.map(d=>{
+    const m=funcs.filter(f=>f.div_id===d.id);
+    const on=m.filter(f=>f.online).length;
+    return`<div class="div-card ${d.ativa?'':'inativa'}" onclick="showDivDetail(${d.id})">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem"><div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700">${d.nome}</div><span class="b ${d.ativa?'b-ok':'b-mu'}">${d.ativa?'Ativa':'Inativa'}</span></div>
+      <div style="font-size:.78rem;color:var(--mu);margin-bottom:.6rem;line-height:1.5">${d.desc}</div>
+      <div style="font-size:.73rem;color:var(--mu);margin-bottom:.75rem">👤 Resp: <span style="color:var(--tx)">${d.resp}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:.75rem;border-top:1px solid var(--gb)">
+        <div style="font-size:.75rem;color:var(--mu)">👥 <span style="color:var(--tx);font-weight:600">${m.length}</span> membros · <span style="color:var(--ok)">${on} online</span></div>
+        <div style="display:flex;gap:6px"><button class="ba" onclick="event.stopPropagation();toggleDiv(${d.id})">${d.ativa?'🔴':'🟢'}</button><button class="ba d" onclick="event.stopPropagation();delDiv(${d.id})">🗑️</button></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showDivDetail(id){
+  const d=divisoes.find(d=>d.id===id);if(!d)return;
+  const m=funcs.filter(f=>f.div_id===id);
+  document.getElementById('div-dt-title').textContent=`${d.nome} — ${m.length} Funcionário${m.length!==1?'s':''}`;
+  document.getElementById('div-dt-grid').innerHTML=m.length?m.map(fcHTML).join(''):'<div style="color:var(--mu)">Sem funcionários</div>';
+  const det=document.getElementById('div-detail');det.style.display='block';det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function saveDivisao(){const nome=v('dv-nome').trim();if(!nome){showT('Preencha o nome!','wn');return;}const id=Math.max(...divisoes.map(d=>d.id),0)+1;divisoes.push({id,nome,desc:v('dv-desc'),resp:v('dv-resp'),ativa:document.getElementById('dv-ativa').checked});closeM('novaDivisao');renderDivisoes();showT('Divisão criada!','ok');}
+function toggleDiv(id){const d=divisoes.find(d=>d.id===id);if(!d)return;d.ativa=!d.ativa;renderDivisoes();showT(`${d.nome}: ${d.ativa?'ativada':'desativada'}!`,d.ativa?'ok':'wn');}
+function delDiv(id){if(!confirm('Eliminar divisão?'))return;divisoes=divisoes.filter(d=>d.id!==id);renderDivisoes();showT('Eliminada!','er');}
+
+// ══════════════════════════════════════
+// FUNCIONÁRIOS
+// ══════════════════════════════════════
+function switchFuncTab(t){
+  fTab=t;
+  document.getElementById('ftab-lista').classList.toggle('active',t==='lista');
+  document.getElementById('ftab-divisoes').classList.toggle('active',t==='divisoes');
+  document.getElementById('fsub-lista').style.display=t==='lista'?'block':'none';
+  document.getElementById('fsub-divisoes').style.display=t==='divisoes'?'block':'none';
+  if(t==='divisoes')renderDivView();
+}
+
+// Cartão de funcionário (com horas)
+function fcHTML(f,i){
+  const d=divisoes.find(d=>d.id===f.div_id);
+  const [bg,col]=C[(i!==undefined?i:f.id)%C.length];
+  const ini=f.nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+  const minMes=calcMinMes(f.id);
+  const pct=Math.min(100,Math.round((minMes/60)/(f.meta||160)*100));
+  const barCls=pct>=80?'green':pct>=40?'yellow':'red';
+  const isAdmin=session&&session.role==='admin';
+  const adminBtns=isAdmin?`<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;justify-content:center">
+    <button class="btn btn-g" style="font-size:.7rem;padding:.22rem .6rem" onclick="toggleFnOnline(${f.id})">${f.online?'Pôr offline':'Pôr online'}</button>
+    <button class="btn btn-g" style="font-size:.7rem;padding:.22rem .6rem" onclick="openEditFunc(${f.id})">✏️ Editar</button>
+    <button class="ba d" style="width:auto;padding:.22rem .6rem;border-radius:8px;font-size:.7rem" onclick="delFunc(${f.id})">🗑️</button>
+  </div>`:'';
+  return`<div class="fc">
+    <div class="fav" style="background:${bg}"><span style="color:${col};font-family:'Syne',sans-serif;font-weight:700">${ini}</span><div class="fsd ${f.online?'on':'off'}"></div></div>
+    <div style="font-size:.88rem;font-weight:600">${f.nome}</div>
+    <div style="font-size:.73rem;color:var(--mu)">${f.cargo}</div>
+    ${d?`<div style="font-size:.7rem;color:var(--a)">${d.nome}</div>`:''}
+    <div style="font-size:.7rem;color:var(--mu)">${f.turno}</div>
+    <div style="width:100%;margin-top:4px">
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--mu);margin-bottom:2px"><span>Horas mês</span><span style="color:var(--tx)">${fmtH(minMes)}/${f.meta}h</span></div>
+      <div class="h-bar-wrap"><div class="h-bar ${barCls}" style="width:${pct}%"></div></div>
+    </div>
+    ${adminBtns}
+  </div>`;
+}
+
+function renderFuncs(){
+  const on=funcs.filter(f=>f.online),off=funcs.filter(f=>!f.online);
+  set('fn-on',on.length);set('fn-off',off.length);
+  document.getElementById('fg-online').innerHTML=on.length?on.map((f,i)=>fcHTML(f,i)).join(''):'<div style="color:var(--mu)">Nenhum em serviço</div>';
+  document.getElementById('fg-offline').innerHTML=off.length?off.map((f,i)=>fcHTML(f,i)).join(''):'<div style="color:var(--mu)">Todos online ✅</div>';
+  if(fTab==='divisoes')renderDivView();
+  updateStats();
+}
+
+// Vista Por Divisão — read-only
+function renderDivView(){
+  const el=document.getElementById('divv-list');
+  el.innerHTML=divisoes.map(d=>{
+    const members=funcs.filter(f=>f.div_id===d.id);
+    const ativos=members.filter(f=>f.online).length;
+    return`<div class="divv-card">
+      <div class="divv-header">
+        <div>
+          <div class="divv-name">${d.nome}</div>
+          <div style="font-size:.72rem;color:var(--mu);margin-top:2px">Resp: <span style="color:var(--tx)">${d.resp}</span> · <span style="color:var(--ok)">${ativos} online</span> de ${members.length}</div>
+        </div>
+        <span class="b ${d.ativa?'b-ok':'b-mu'}">${d.ativa?'Ativa':'Inativa'}</span>
+      </div>
+      ${members.length?`<div class="divv-members">${members.map((f,i)=>{
+        const [bg,col]=C[i%C.length];
+        const ini=f.nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+        return`<div class="divv-member">
+          <div class="divv-mini-av" style="background:${bg};color:${col}">${ini}<div class="divv-mini-dot" style="background:${f.online?'var(--ok)':'rgba(255,255,255,.2)'}"></div></div>
+          <div><div class="divv-mini-name">${f.nome}</div><div class="divv-mini-cargo">${f.cargo} · ${f.turno}</div></div>
+          <span class="b ${f.online?'b-ok':'b-mu'}" style="font-size:.62rem;padding:2px 7px;margin-left:4px">${f.online?'Online':'Offline'}</span>
+        </div>`;
+      }).join('')}</div>`:'<div class="divv-empty">Sem funcionários nesta divisão</div>'}
+    </div>`;
+  }).join('');
+}
+
+function toggleFnOnline(id){const f=funcs.find(f=>f.id===id);if(!f)return;f.online=!f.online;renderFuncs();showT(`${f.nome}: ${f.online?'online':'offline'}!`,f.online?'ok':'wn');}
+
+function saveFunc(){
+  const nome=v('fn-nome').trim();if(!nome){showT('Preencha o nome!','wn');return;}
+  const login=v('fn-login').trim().toLowerCase();if(!login){showT('Preencha o login!','wn');return;}
+  if(users.find(u=>u.login===login)){showT('Login já existe!','er');return;}
+  const id=Math.max(...funcs.map(f=>f.id),0)+1;
+  const meta=parseInt(v('fn-meta'))||160;
+  funcs.push({id,nome,cargo:v('fn-cargo'),turno:v('fn-turno'),div_id:parseInt(v('fn-div'))||null,online:document.getElementById('fn-online').checked,meta});
+  users.push({login,pass:v('fn-pass')||'ponto123',role:'func',func_id:id});
+  closeM('novoFunc');renderFuncs();showT('Funcionário adicionado!','ok');
+}
+
+function openEditFunc(id){
+  const f=funcs.find(f=>f.id===id);if(!f)return;
+  const u=users.find(u=>u.func_id===id);
+  document.getElementById('ef-id').value=id;
+  document.getElementById('ef-nome').value=f.nome;
+  document.getElementById('ef-cargo').value=f.cargo;
+  document.getElementById('ef-turno').value=f.turno;
+  document.getElementById('ef-meta').value=f.meta||160;
+  document.getElementById('ef-login').value=u?u.login:'';
+  document.getElementById('ef-pass').value=u?u.pass:'';
+  document.getElementById('ef-online').checked=f.online;
+  const sel=document.getElementById('ef-div');
+  sel.innerHTML=divisoes.map(d=>`<option value="${d.id}"${d.id===f.div_id?' selected':''}>${d.nome}</option>`).join('');
+  openM('editFunc');
+}
+
+function updateFunc(){
+  const id=parseInt(document.getElementById('ef-id').value);
+  const f=funcs.find(f=>f.id===id);if(!f)return;
+  f.nome=v('ef-nome');f.cargo=v('ef-cargo');f.turno=v('ef-turno');f.div_id=parseInt(v('ef-div'));f.online=document.getElementById('ef-online').checked;f.meta=parseInt(v('ef-meta'))||160;
+  const u=users.find(u=>u.func_id===id);
+  if(u){const nl=v('ef-login').trim().toLowerCase();const np=v('ef-pass').trim();if(nl)u.login=nl;if(np)u.pass=np;}
+  closeM('editFunc');renderFuncs();showT('Atualizado!','ok');
+}
+
+function delFunc(id){if(!confirm('Eliminar este funcionário?'))return;funcs=funcs.filter(f=>f.id!==id);users=users.filter(u=>u.func_id!==id);renderFuncs();showT('Eliminado!','er');}
+
+// ══════════════════════════════════════
+// BATE-PONTO (admin)
+// ══════════════════════════════════════
+function renderBP(){
+  document.getElementById('bp-fgrid').innerHTML=funcs.map((f,i)=>{
+    const [bg,col]=C[i%C.length];
+    const ini=f.nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+    const d=divisoes.find(d=>d.id===f.div_id);
+    const sel=bpSelected===f.id?'sel':'';
+    return`<div class="bpfc ${sel}" id="bpfc-${f.id}" onclick="selBP(${f.id})">
+      <div style="width:40px;height:40px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;color:${col};position:relative">
+        ${ini}<div style="position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;border:2px solid #0A0812;background:${f.online?'var(--ok)':'rgba(255,255,255,.2)'}"></div>
+      </div>
+      <div style="font-size:.78rem;font-weight:600;margin-top:2px">${f.nome.split(' ')[0]}</div>
+      ${d?`<div style="font-size:.65rem;color:var(--a)">${d.nome.split(' ')[0]}</div>`:''}
+    </div>`;
+  }).join('');
+  renderBPListAdmin();
+}
+
+function selBP(id){
+  bpSelected=bpSelected===id?null:id;
+  document.querySelectorAll('.bpfc').forEach(el=>el.classList.remove('sel'));
+  if(bpSelected){
+    const el=document.getElementById('bpfc-'+bpSelected);if(el)el.classList.add('sel');
+    const f=funcs.find(f=>f.id===bpSelected);
+    const d=divisoes.find(d=>d.id===f.div_id);
+    document.getElementById('bp-sel-info').innerHTML=`<b style="color:var(--tx)">${f.nome}</b> · ${f.cargo}${d?' · <span style="color:var(--a)">'+d.nome+'</span>':''}`;
+  } else {document.getElementById('bp-sel-info').textContent='Nenhum funcionário selecionado';}
+}
+
+function regPonto(tipo){
+  if(!bpSelected){showT('Seleciona um funcionário!','wn');return;}
+  const f=funcs.find(f=>f.id===bpSelected);if(!f)return;
+  addBPEntry(f,tipo);
+  renderBPListAdmin();renderFuncs();updateStats();
+  showT(`${tipo} de ${f.nome.split(' ')[0]} registada!`,tipo==='Entrada'?'ok':'wn');
+}
+
+function regTurnoCompleto(){
+  if(!bpSelected){showT('Seleciona um funcionário!','wn');return;}
+  const f=funcs.find(f=>f.id===bpSelected);if(!f)return;
+  const now=new Date();
+  // Entrada: agora - duração do turno
+  const dur=getTurnoDuration(f.turno);
+  const entTs=new Date(now.getTime()-(dur*60*60*1000));
+  const entHora=entTs.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});
+  const saiHora=now.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});
+  const d=divisoes.find(d=>d.id===f.div_id);
+  bpLog.unshift({id:Date.now()+'e',func_id:f.id,func_nome:f.nome,div_nome:d?d.nome:'—',tipo:'Entrada',hora:entHora,ts:entTs});
+  bpLog.unshift({id:Date.now()+'s',func_id:f.id,func_nome:f.nome,div_nome:d?d.nome:'—',tipo:'Saída',hora:saiHora,ts:now});
+  f.online=true;
+  renderBPListAdmin();renderFuncs();updateStats();
+  showT(`Turno completo de ${dur}h registado para ${f.nome.split(' ')[0]}!`,'ok');
+}
+
+function getTurnoDuration(turno){
+  if(turno.includes('12H'))return 12;
+  if(turno.includes('24H'))return 24;
+  if(turno.includes('Completo'))return 12;
+  return 8; // padrão
+}
+
+function addBPEntry(f,tipo){
+  const d=divisoes.find(d=>d.id===f.div_id);
+  const now=new Date();
+  bpLog.unshift({id:Date.now(),func_id:f.id,func_nome:f.nome,div_nome:d?d.nome:'—',tipo,hora:now.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),ts:now});
+  if(tipo==='Entrada')f.online=true;
+  else f.online=false;
+}
+
+function getDurLabel(logArr, entry){
+  if(entry.tipo==='Saída'){
+    // encontra a entrada mais recente antes desta saída
+    const fLogs=logArr.filter(e=>e.func_id===entry.func_id);
+    const idx=fLogs.findIndex(e=>e.id===entry.id);
+    for(let i=idx+1;i<fLogs.length;i++){
+      if(fLogs[i].tipo==='Entrada') return calcDuracao(fLogs[i],entry);
+    }
+  }
+  if(entry.tipo==='Entrada'){
+    // vê se tem saída depois
+    const fLogs=logArr.filter(e=>e.func_id===entry.func_id);
+    const idx=fLogs.findIndex(e=>e.id===entry.id);
+    for(let i=idx-1;i>=0;i--){
+      if(fLogs[i].tipo==='Saída') return calcDuracao(entry,fLogs[i]);
+    }
+    // sessão em aberto
+    return `⏱ ${fmtH((new Date()-entry.ts)/60000)} (aberto)`;
+  }
+  return '—';
+}
+
+function renderBPListAdmin(){
+  const today=new Date().toDateString();
+  const todayE=bpLog.filter(e=>e.ts.toDateString()===today);
+  set('bp-cnt',`${todayE.length} registo${todayE.length!==1?'s':''}`);
+  document.getElementById('bp-list').innerHTML=todayE.length?todayE.map((e,i)=>{
+    const [bg,col]=C[i%C.length];const ini=e.func_nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+    return`<div class="bprow"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:${bg};color:${col};display:flex;align-items:center;justify-content:center;font-size:.75rem;font-family:'Syne',sans-serif;font-weight:700;flex-shrink:0">${ini}</div><div><div style="font-size:.85rem;font-weight:500">${e.func_nome}</div><div style="font-size:.72rem;color:var(--mu)">${e.div_nome}</div></div></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:.78rem;color:var(--mu)">${e.hora}</span><span class="${e.tipo==='Entrada'?'ein':'eout'}">${e.tipo}</span></div></div>`;
+  }).join(''):'<div style="text-align:center;padding:2rem;color:var(--mu)">Sem registos hoje</div>';
+
+  document.getElementById('bp-hist').innerHTML=bpLog.length?bpLog.map((e,i)=>{
+    const [bg,col]=C[i%C.length];const ini=e.func_nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+    const dur=getDurLabel(bpLog,e);
+    return`<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:${bg};color:${col};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:700;flex-shrink:0">${ini}</div><span style="font-size:.85rem;font-weight:500">${e.func_nome}</span></div></td><td><span style="font-size:.78rem;color:var(--mu)">${e.div_nome}</span></td><td><span class="${e.tipo==='Entrada'?'ein':'eout'}">${e.tipo}</span></td><td><span style="font-size:.75rem;color:var(--mu)">${dur}</span></td><td><span style="font-size:.78rem;color:var(--mu)">${e.ts.toLocaleDateString('pt-PT')} ${e.hora}</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mu)">Sem histórico</td></tr>';
+}
+
+// ══════════════════════════════════════
+// PESSOAL
+// ══════════════════════════════════════
+function renderPessoal(){
+  if(!session||session.role!=='func')return;
+  const f=funcs.find(f=>f.id===session.func_id);if(!f)return;
+  const d=divisoes.find(d=>d.id===f.div_id);
+  const [bg,col]=C[f.id%C.length];
+  const ini=f.nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+  const bigAv=document.getElementById('p-bigav');bigAv.style.background=bg;
+  const iniEl=document.getElementById('p-ini');iniEl.style.color=col;iniEl.style.fontFamily="'Syne',sans-serif";iniEl.style.fontWeight='700';iniEl.style.fontSize='1.4rem';iniEl.textContent=ini;
+  const dot=document.getElementById('p-dot');dot.style.background=f.online?'var(--ok)':'rgba(255,255,255,.25)';
+  set('p-nome',f.nome);
+  document.getElementById('p-cargo-b').innerHTML=`<span class="b b-ac">${f.cargo}</span>`;
+  set('p-div',d?d.nome:'—');set('p-turno',f.turno);
+  const si=document.getElementById('p-status-item');si.style.color=f.online?'var(--ok)':'var(--mu)';set('p-status',f.online?'Em Serviço':'Fora de Serviço');
+  set('i-nome',f.nome);set('i-cargo',f.cargo);set('i-div',d?d.nome:'—');set('i-turno',f.turno);
+
+  // Horas do mês
+  const minMes=calcMinMes(f.id);
+  const meta=f.meta||160;
+  const horas=(minMes/60);
+  const pct=Math.min(100,Math.round(horas/meta*100));
+  const barCls=pct>=80?'green':pct>=40?'yellow':'red';
+  set('p-horas-val',`${horas.toFixed(1)}h`);set('p-meta-val',`${meta}h`);set('p-pct',`${pct}%`);
+  const bar=document.getElementById('p-horas-bar');bar.style.width=pct+'%';bar.className='horas-bar '+barCls;
+  // Sessão aberta?
+  const openEnt=bpLog.filter(e=>e.func_id===f.id).find(e=>e.tipo==='Entrada');
+  const hasOpen=openEnt&&!bpLog.filter(e=>e.func_id===f.id&&e.tipo==='Saída').some(e=>e.ts>openEnt.ts);
+  set('p-horas-sub',hasOpen?`⏱ Sessão aberta desde ${openEnt.hora}`:`Sem sessão aberta`);
+
+  // Stats hoje
+  const today=new Date().toDateString();
+  const meusHoje=bpLog.filter(e=>e.func_id===f.id&&e.ts.toDateString()===today);
+  set('my-hoje',meusHoje.length);
+  const ents=meusHoje.filter(e=>e.tipo==='Entrada');const sais=meusHoje.filter(e=>e.tipo==='Saída');
+  set('my-ent',ents.length?ents[0].hora:'—');set('my-sai',sais.length?sais[0].hora:'—');
+}
+
+// ══════════════════════════════════════
+// MEU PONTO
+// ══════════════════════════════════════
+function renderMeuPonto(){
+  if(!session||session.role!=='func')return;
+  const f=funcs.find(f=>f.id===session.func_id);if(!f)return;
+  const d=divisoes.find(d=>d.id===f.div_id);
+  set('my-p-nome',f.nome);set('my-p-cargo',(d?d.nome+' · ':'')+f.cargo);
+  // Horas
+  const minMes=calcMinMes(f.id);
+  const meta=f.meta||160;
+  const pct=Math.min(100,Math.round((minMes/60)/meta*100));
+  const barCls=pct>=80?'green':pct>=40?'yellow':'red';
+  set('my-h-val',`${(minMes/60).toFixed(1)}h`);set('my-h-meta',`${meta}h`);
+  const hb=document.getElementById('my-h-bar');hb.style.width=pct+'%';hb.className='horas-bar '+barCls;
+  renderMeuBP();
+}
+
+function regMeuPonto(tipo){
+  if(!session||session.role!=='func')return;
+  const f=funcs.find(f=>f.id===session.func_id);if(!f)return;
+  addBPEntry(f,tipo);
+  renderMeuBP();renderPessoal();
+  showT(`${tipo} registada!`,tipo==='Entrada'?'ok':'wn');
+}
+
+function renderMeuBP(){
+  if(!session)return;
+  const f=funcs.find(f=>f.id===session.func_id);if(!f)return;
+  const meus=bpLog.filter(e=>e.func_id===f.id);
+  const today=new Date().toDateString();
+  const hoje=meus.filter(e=>e.ts.toDateString()===today);
+  set('my-cnt',hoje.length);
+  document.getElementById('my-bp-list').innerHTML=hoje.length?hoje.map(e=>`
+    <div class="bprow"><span style="font-size:.85rem;font-weight:500">${e.hora}</span><span class="${e.tipo==='Entrada'?'ein':'eout'}">${e.tipo}</span></div>`).join('')
+  :'<div style="text-align:center;padding:2rem;color:var(--mu)">Sem registos hoje</div>';
+  // lr
+  const lr=document.getElementById('my-lr');
+  if(hoje.length){const l=hoje[0];lr.innerHTML=`Último: <b style="color:var(--tx)">${l.tipo}</b> às <b style="color:var(--tx)">${l.hora}</b>`;}
+  else lr.innerHTML='<span style="color:var(--mu)">Sem registos hoje ainda.</span>';
+  // histórico
+  document.getElementById('my-hist').innerHTML=meus.length?meus.map(e=>{
+    const dur=getDurLabel(bpLog,e);
+    return`<tr><td><span class="${e.tipo==='Entrada'?'ein':'eout'}">${e.tipo}</span></td><td><span style="font-size:.78rem;color:var(--mu)">${dur}</span></td><td><span style="font-size:.78rem;color:var(--mu)">${e.ts.toLocaleDateString('pt-PT')}</span></td><td><span style="font-size:.78rem;color:var(--mu)">${e.hora}</span></td></tr>`;
+  }).join(''):'<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--mu)">Sem histórico</td></tr>';
+  // Atualiza horas no painel do lado
+  renderMeuPonto();
+}
+
+// ══════════════════════════════════════
+// RELÓGIO
+// ══════════════════════════════════════
+function tickClock(){
+  const t=new Date().toLocaleTimeString('pt-PT');
+  const d=new Date().toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  ['bp-clock','my-clock'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=t;});
+  ['bp-date','my-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=d;});
+  // Atualiza horas em aberto do perfil se estiver visível
+  if(session&&session.role==='func'&&document.getElementById('pg-pessoal').classList.contains('active'))renderPessoal();
+  if(session&&session.role==='func'&&document.getElementById('pg-meu-ponto').classList.contains('active'))renderMeuBP();
+}
+setInterval(tickClock,1000);tickClock();
+
+// ══════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════
+function openM(n){
+  document.getElementById('m-'+n).classList.add('open');
+  const rd=document.getElementById('r-data');if(rd)rd.value=new Date().toISOString().split('T')[0];
+  if(n==='novoFunc'||n==='novaDivisao'){
+    const fd=document.getElementById('fn-div');
+    if(fd)fd.innerHTML=divisoes.map(d=>`<option value="${d.id}">${d.nome}</option>`).join('');
+    const dr=document.getElementById('dv-resp');
+    if(dr)dr.innerHTML=funcs.map(f=>`<option>${f.nome}</option>`).join('');
+  }
+  if(n==='novoTicket'){const ta=document.getElementById('tk-at');if(ta)ta.innerHTML=funcs.map(f=>`<option>${f.nome}</option>`).join('');}
+  if(n==='novoTicketFunc'&&session){
+    const f=funcs.find(f=>f.id===session.func_id);
+    const el=document.getElementById('tkf-nome-display');if(el&&f)el.textContent=f.nome;
+  }
+}
+function closeM(n){document.getElementById('m-'+n).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function runA(a){showT({exportar:'A exportar...',backup:'Backup iniciado!',limpar:'Cache limpo!'}[a]||'OK','ok');}
+function showT(msg,type='ok'){const i={ok:'✅',wn:'⚠️',er:'❌'};document.getElementById('tm').textContent=msg;document.getElementById('ti').textContent=i[type]||'✅';const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+function fd(d){return d?new Date(d).toLocaleDateString('pt-PT'):'—';}
+function v(id){const e=document.getElementById(id);return e?e.value:'';}
+function set(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
+function updateSync(){const e=document.getElementById('lsync');if(e)e.textContent=new Date().toLocaleTimeString('pt-PT');}
+setInterval(updateSync,60000);
+</script>
+
+<script src="api.js"></script>
+</body>
+</html>
